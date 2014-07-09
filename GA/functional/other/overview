@@ -1,0 +1,36 @@
+Globals:
+
+mutation_rate       : percent of pop/em that is mutated
+max_mutation_change : max percent a value can be mutated by
+crossover_rate      : frequency of crossover
+parent_size         : percent of population to use for mating
+order               : order of the HMM
+emissions           : number of emissions
+template_hmm        : Input template HMM without any emissions
+sequence_file       : fasta file of region to call peaks on
+initial_model       : input initial HMM model
+population_size     : size of pop
+generations         : number of generations to run
+threshold           : threshold to pass to stochhmm
+threads             : number of threads
+output_dir          : directory to output to
+
+Functions:
+
+read_HMM();
+
+generate_population() ;
+
+mutate_population() ;
+
+purge();
+  rank_scores();
+
+mate(); #mutation happens in this function and crossover
+  crossover();
+
+evaluate(); #scores sorted here too
+
+print_HMM();
+
+

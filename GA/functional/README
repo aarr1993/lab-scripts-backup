@@ -1,0 +1,6 @@
+VERY ALPHA development stage of a complete rewrite of GA using functional programming
+All test folders should be here.
+
+Still in testing.
+Code technically runs, but not extensively tested yet.
+Intended to replace crazy OO implementation of GA.

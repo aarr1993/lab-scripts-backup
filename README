@@ -1,0 +1,8 @@
+Added certain subdirectories to .profile $PATH variable, may need to modify later. Recursively adding subdirectories is a security risk, adding them explicitly.
+
+Need to test this, clean up $PATH variable.
+
+testing/ dir is for testing or temp scripts.
+DO NOT put any scripts outside of a subdirectory! It will quickly become disorganized.
+
+Editing to test git editing again

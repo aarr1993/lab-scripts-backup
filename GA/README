@@ -1,0 +1,19 @@
+shift_wig.pl should be used instead of lower_wig2fa.pl.
+
+These scripts are the FINAL scripts used for peak calling and producing the models that are used with stochhmm. 
+
+All scripts that are needed for running GA should be here
+
+NOTE: This code is VERY VERY alpha
+  there is a lot of hardcoding
+  G_A code is very messy, still has debug statements and comments
+  make_cache is VERY specific to a certain region
+  evaluate() calls the evaluate script by a diffent model
+  still assuming lower_wig2fa
+  and many other problems.
+
+Code is technically correct and WILL run if in the correct directories, with other scripts in corrct directories, but is too specific and hardcoded.
+
+Major cleaning up needed.
+
+DO NOT RUN GA without CAREFUL inspection of source code and complete understanding of WHICH scripts go WHERE.

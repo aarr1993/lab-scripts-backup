@@ -54,7 +54,7 @@ sub split_wig {
     if ($line =~ /^variableStep/) {
       my ($chr) = $line =~ /^variableStep chrom=(.+) span=.+/;
 
-        if ($prev_chr ne "INIT") {
+        if ($prev_chr ne "INIT" && $prev_chr ne $chr) {
           close TMP;
         }
         if (!exists($small_wigs{$chr})) {

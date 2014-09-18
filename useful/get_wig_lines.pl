@@ -2,7 +2,7 @@
 use warnings ;
 use strict ;
 
-my $warning "
+my $warning = "
 Warnings:
 Expects 1 chromosome wig file
 Does not break on variableStep lines : If file has more than 1 chr, will print out all the lines within start, end interval, does print variableStep lines.

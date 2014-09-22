@@ -4,3 +4,124 @@ All test folders should be here.
 Still in testing.
 Code technically runs, but not extensively tested yet.
 Intended to replace crazy OO implementation of GA.
+
+Pipeline:
+
+The Genetic Algorithm script itself requries:
+
+fasta sequence file
+initial hmm
+template HMM without emissions
+
+The eval script requires:
+a named cache of wig
+wig file
+
+The make cache script requires:
+wig file
+
+Train on one part of a chromosome, test on another
+
+All wigs should be for ONE chromosome only
+
+To make the initial HMM model file, use a specific region of the chromosome only
+
+----.-------
+| | -- model region
+      |    | -- test region
+
+But use the genetic algorithm on the ENTIRE chromosome
+eval script thankfully takes its coordinates for comparing from the wig in cache
+  which can be the small region above
+can also use GA only on regions OUTSIDE model region, testing only on a small region within that. This would probably be more correct.
+
+Wig files needed (all within a single chromosome):
+model-region.wig
+test-region.wig
+run-region.wig
+
+------.---------
+        |    | -- test region
+    |           | -- run region
+|  | -- model region
+
+Use the model region to manually generate emissions for initial HMM model file. 
+Note: None of the scripts hardcode (within code -- just the number is a global) the states themselves, so this is technically state-independent.
+Within model region, look for small regions that describe one of the seven states:
+ 
+  Noisy_MedPeak
+  Noisy_InterPeak
+  Noisy_BroadPeak
+  
+  Genomic_InterPeak
+  
+  Sparse_MedPeak
+  Sparse_SharpPeak
+  Sparse_InterPeak
+
+  (Have pictoral representation of model as well as examples of all states from DRIP data)
+
+Use the generate_HMM_template.pl script to generate the skeleton HMM file. Copy this to a new file -- do not edit directly, the template will be needed -- and insert the emissions into this file.
+
+How to get emissions:
+---
+Once regions are identified that match a particular state, create a file in bedgraph format listing these regions.
+
+use wig2fa.pl to convert entire chromosome wig file to fasta file.
+
+Use FastaFromBed to convert to FASTA file. 
+
+Use HMM_Counter to convert to .count files.
+
+cat append these count files to appropriate state in model file. 
+---
+
+Now you have an initial model .hmm file, a template .hmm file, a .customfa of the entire chromosome.
+
+If you want to have a seperate run-region instead of entire chromosome, now define those regions, extract from wig file, turn into another .customfa. 
+
+Now make a cache of the test-region wig file. 
+  There is a LOT of hardcoding in make_cache.pl and eval script, so be careful and FIX all this!
+
+Now check all hardcoded things / global variables in eval script and GA script.
+
+Now run GA with the run-region / entire chr as the fasta sequence file, initial model HMM just created, template created, other information.
+ 
+Absolutely neccessary human input:
+The 3 wig file regions
+The entire process of making the initial HMM
+Making the template HMM
+
+What needs to be automated in wrapper:
+Any median shift / normalization that needs to be done on wigs prior to entire process (can and should be automated)
+making the cache and editing evalscript hardcoded params (automate)
+
+wrapper to be written in Perl also.
+All dependent scripts edited.
+
+Find a way to split a negative binomial dist OR a normalization method for entire data.
+
+Modes:
+
+Preprocess
+  Normalize wig file  
+  Create .customfa's from input wig file, input regions, and wig2fa.pl
+  Run template HMM script / load from file
+    Option to use a 'default' HMM template (a generic 7 state)
+  Prompt steps to create emissions for initial HMM
+    Within [region] define small regions that match [states]
+    create small bedgraph files of regions
+  HMM_Counter.pl over input bed files
+  create initial model from template HMM and .count files
+
+Run GA
+  make cache from wig file, test-region coordinates, initialize eval script with sig/unsig region counts
+  optionally make run-region from coordinates and wig file, make to fasta
+  Select mode: state-specific mutagenesis or no
+  Supply params: all usage params, as well as debug / verbose / quiet / normal mode
+
+Any of these steps except the last can be skipped if already completed. We are trusting the user here with a lot. 
+
+In this way, all the user needs to do is define the bed regions manually and answer all prompts as presented by various scripts.
+
+All the theory is going to be horrible to document.

@@ -5444,3 +5444,1464 @@ Function calls make a HUGE difference in time!
   use File::Basename to extract file name from paths! Can also replace mitochy
 
 sliding window script works needs to be improved see FIXMEs
+
+
+#########
+
+
+9.2.14
+
+Trans targets:
+  Run peak count simulation, shuffling NEAT1 or MALAT1 and overlap with DRIP, overlap with DRIPc. 1mil trials.
+  MAnorm:
+    Check all MAnorm params and inputs. Re-produce graph to make sure inputs are correct. Note all params.
+    NEAT1 MALAT1 overlay on DRIP/DRIPc MAnorm plot
+      discontinuous p-value ranges in grey, starting at 10-5
+      colored NEAT1 targets, MALAT1 targets, both
+        seperate color of NEAT1 itself, MALAT1 itself
+    Produce table of fold increase ranges (significant only: p < 10-5)
+      2, 4, etc ... 16
+      DRIP significantly different from DRIPc, DRIPc significantly different than DRIP columns
+
+Replication Origins:
+  Read prioleau paper, download data. 
+    Compare their replication origins with DRIP/DRIPc
+    Compare to BrdU data overlaps. 
+  Produce prelim figure from BrdU Replication Origins and DRIP/DRIPc overlap information (boxplots)
+  Write all methods, document all scripts/processes/input files
+
+GA-StochHMM
+  Document!
+  Test rewrite completely
+  Write a cli "Interface"
+  Deal with median shift/integrate into scripts
+
+  
+===
+
+Modified run.pl to take more arguments and accept two intersects. Untested. /data/aparna/trans_targets/run_twointersects.pl
+
+aparna@zeus:/data/wearn/NT2_dripc/West_lncRNA$ cp MALAT1_chart_peaks.bed NEAT1_chart_peaks.bed /data/aparna/trans_targets/
+
+aparna@zeus:/data/aparna/trans_targets$ ./run_twointersects.pl gaps_hg19.be
+d hg19.genome NEAT1_chart_peaks.bed /data/wearn/NT2_dripc/Peaks/NT2_DRIPc_merged_rep12_peaks.bed /data/wearn/NT2_dripc/Peaks/NT2_DRIP_intersect_peaks.bed NEAT1_DRIPc_1mil_sim.txt NEAT1_DRIP_1mil_sim.txt
+
+  Tested new script, now running for real under screen. NEAT1.
+
+Double checked params for MAnorm, file used was NT2_DRIPc_merged_rep12_peaks.bed 
+
+Annotation column:
+
+initially do these p-values
+10-5 as lowest threshold
+10-6
+10-7
+10-8
+10-9 and greater
+
+$9 is -log10 p-val, >5 means less than 0.00001
+
+so cutoffs are
+>5 <6
+>6 <7
+>7 <8
+>8 <9
+>9
+
+if point overlaps with NEAT1
+if point overlaps with MALAT1
+if point overlaps with common NEAT1/MALAT1 
+
+8 different colors.
+
+write a script to handle all of this rather than awk.
+  written, untested. /data/aparna/trans_targets/maplot_pval.pl
+  need to preprocess data first, before running.
+  need to figure out R script to plot also
+
+aparna@zeus:/data/aparna/trans_targets$ cp /data/aparna/MAnorm/MAnorm_result.xls .
+
+awk if-else example:
+  ls -l | awk '{if ($3 == "rahmu") print $0;}'
+
+aparna@zeus:/data/aparna/trans_targets$ awk '{if ($4 == "unique_peak1" || $
+4 == "common_peak1") print $0;}' MAnorm_result.xls >> sample1_MAnorm.xls
+aparna@zeus:/data/aparna/trans_targets$ awk '{if ($4 == "unique_peak2" || $4 == "common_peak2") print $0;}' MAnorm_result.xls >> sample2_MAnorm.xls
+
+aparna@zeus:/data/aparna/trans_targets$ sort -k 1,1 -k 2,2n sample1_MAnorm.xls > sorted_sample1_MAnorm.xls
+aparna@zeus:/data/aparna/trans_targets$ sort -k 1,1 -k 2,2n sample2_MAnorm.xls > sorted_sample2_MAnorm.xls
+
+PROBLEM:
+
+MAnorm uses NT2_DRIPc_merged_rep12_peaks.bed that is in /data/aparna/MAnorm. This file has MORE peaks than the one in /data/wearn/NT2_dripc/Peaks! re-do MAnorm for the peakfile in /data/wearn/NT2_dripc/Peaks. Try to find out what was filtered out ...
+
+9.3.14
+
+Rechecked MAnorm files, was running simulation with wrong files. Rerunning now:
+
+          
+aparna@zeus:/data/aparna/trans_targets$ ./run_twointersects.pl gaps_hg19.bed hg19.genome MALAT1_chart_peaks.bed /data/wearn/NT2_dripc/Peaks/NT2_DRIPc_merged_rep12_peaks.bed /data/wearn/NT2_dripc/Peaks/NT2_DRIP_merge_peaks.bed sim_outfiles/MALAT1_DRIPc_1mil_sim.txt sim_outfiles/MALAT1_DRIP_1mil_sim.txt
+
+aparna@zeus:/data/aparna/trans_targets$ bedtools intersect -c -a /data/wearn/NT2_dripc/
+Peaks/NT2_DRIPc_merged_rep12_peaks.bed -b NEAT1_chart_peaks.bed > DRIPc_NEAT1_c_intersect.tmp
+aparna@zeus:/data/aparna/trans_targets$ bedtools intersect -c -a /data/wearn/NT2_dripc/Peaks/NT2_DRIP_merge_peaks.bed -b NEAT1_chart_peaks.bed > DRIP_NEAT1_c_intersect.tmp
+aparna@zeus:/data/aparna/trans_targets$ bedtools intersect -c -a /data/wearn/NT2_dripc/Peaks/NT2_DRIP_merge_peaks.bed -b MALAT1_chart_peaks.bed > DRIP_MALAT1_c_intersect.tmp
+aparna@zeus:/data/aparna/trans_targets$ bedtools intersect -c -a /data/wearn/NT2_dripc/Peaks/NT2_DRIPc_merged_rep12_peaks.bed -b MALAT1_chart_peaks.bed > DRIPc_MALAT1_c_intersect.tmp
+
+MAnorm plots done
+
+9.4.14
+
+MALAT1 sim done. Running NEAT1 sim:
+
+aparna@zeus:/data/aparna/trans_targets$ ./run_twointersects.pl gaps_hg19.bed hg19.genome NEAT1_chart_peaks.bed /data/wearn/NT2_dripc/Peaks/NT2_DRIPc_merged_rep12_peaks.bed /data/wearn/NT2_dripc/Peaks/NT2_DRIP_merge_peaks.bed sim_outfiles/NEAT1_DRIPc_1mil_sim.txt sim_outfiles/NEAT1_DRIP_1mil_sim.txt
+
+MALAT1 significant to 10-6:
+
+> malat_drip<-read.delim("MALAT1_DRIP_1mil_sim.txt", header=F)
+> malat_dripc<-read.delim("MALAT1_DRIPc_1mil_sim.txt", header=F)
+> summary(malat_drip)
+       V1       
+ Min.   :153.0  
+ 1st Qu.:191.0  
+ Median :199.0  
+ Mean   :198.9  
+ 3rd Qu.:206.0  
+ Max.   :247.0  
+> summary(malat_dripc)
+       V1       
+ Min.   :110.0  
+ 1st Qu.:148.0  
+ Median :155.0  
+ Mean   :154.9  
+ 3rd Qu.:162.0  
+ Max.   :200.0  
+
+Data:
+DRIP MALAT1: 574 (86%)
+DRIPc MALAT1: 530 (79%)
+
+Made folder stefano_stochhmm_peaks for peak calling
+need to median shift first
+use only chr8 to compare
+
+aparna@zeus:/data/aparna/stefano_stochhmm_peaks$ parse_wig.pl top1_1_treat_afterfiting_all.wig chr8
+aparna@zeus:/data/aparna/stefano_stochhmm_peaks$ mv chr8.wig top1_1_chr8.wig
+aparna@zeus:/data/aparna/stefano_stochhmm_peaks$ wig2bed.pl top1_1_chr8.wig 
+aparna@zeus:/data/aparna/stefano_stochhmm_peaks$ mv wig2bed_outfile.txt top1_1_chr8.bed
+aparna@zeus:/data/aparna/GA/final_peak_calls/R$ cp DRIP_NT2.wig2bed.out /data/aparna/stefano_stochhmm_peaks/
+
+R commands:
+> drip2<-read.delim("DRIP_NT2.wig2bed.out", header=F)
+> top11<-read.delim("top1_1_chr8.bed", header=F)
+> drip2<-drip2$V4
+> top11<-top11$V4
+> sdrip2<-sort(drip2, decreasing=TRUE)
+> stop11<-sort(top11, decreasing=TRUE)
+> smalldrip2<-sdrip2[1:floor(length(sdrip2)*.1)]
+> smalltop11<-stop11[1:floor(length(stop11)*.1)]
+> summary(smalldrip2)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+  11.78   13.87   17.64   22.46   24.95  253.00 
+> summary(smalltop11)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+  4.000   5.000   6.000   7.162   8.000 112.000 
+> 17.64/6
+[1] 2.94
+
+aparna@zeus:/data/aparna/stefano_stochhmm_peaks$ parse_wig.pl top1_2_treat_afterfiting_all.wig chr8
+aparna@zeus:/data/aparna/stefano_stochhmm_peaks$ mv chr8.wig top1_2_chr8.wig
+aparna@zeus:/data/aparna/stefano_stochhmm_peaks$ wig2bed.pl top1_2_chr8.wig 
+aparna@zeus:/data/aparna/stefano_stochhmm_peaks$ mv wig2bed_outfile.txt top1_2_chr8.bed
+
+> summary(smalltop12)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+  3.000   4.000   5.000   5.961   7.000 102.000 
+> 17.64/5
+[1] 3.528
+
+Take avg of two shifts and shift EVERYTHING by this?
+> (3.528+2.94)/2
+[1] 3.234ls
+
+There are peaks in the two treatments, there aren't supposed to be for controls. Calculate median shift for controls by taking the avg for the two treatments. Use avg shift for everything.
+
+aparna@zeus:/data/aparna/stefano_stochhmm_peaks$ shift_wig.pl top1_1_treat_afterfiting_all.wig 3.234
+
+made seperate dirs for other files to shift. Running top1_1 and top1_2
+aparna@zeus:/data/aparna/stefano_stochhmm_peaks/top12_shift$ shift_wig.pl ../top1_2_treat_afterfiting_all.wig 3.234
+
+
+afterwards run scramble and control
+aparna@zeus:/data/aparna/stefano_stochhmm_peaks/control_shift$ shift_wig.pl ../control_treat_afterfiting_all.wig 3.234
+aparna@zeus:/data/aparna/stefano_stochhmm_peaks/scramble_shift$ shift_wig.pl ../scramble_treat_afterfiting_all.wig 3.234
+
+
+then wig2fa.pl (normal version)
+aparna@zeus:/data/aparna/stefano_stochhmm_peaks/top11_shift$ /data/aparna/scripts/GA/common_scripts/wig2fa.pl -i top1_1_shift_3.234.wig 
+aparna@zeus:/data/aparna/stefano_stochhmm_peaks/top12_shift$ /data/aparna/scripts/GA/common_scripts/wig2fa.pl -i top1_2_shift_3.234.wig 
+aparna@zeus:/data/aparna/stefano_stochhmm_peaks/scramble_shift$ /data/aparna/scripts/GA
+/common_scripts/wig2fa.pl -i scramble_shift_3.234.wig 
+aparna@zeus:/data/aparna/stefano_stochhmm_peaks/control_shift$ /data/aparna/scripts/GA/common_scripts/wig2fa.pl -i control_shift_3.234.wig aparna@zeus:/data/aparna/stefano_stochhmm_peaks/control_shift$ /data/aparna/scripts/GA/common_scripts/wig2
+
+
+Example stochhmm command:
+stochhmm -seq chr19_NT2_dripc_plus_all.wig.customfa -model DRIPc_peaks_plus_chr19.hmm -posterior -threshold 0.9 -gff > output_gff.txt
+
+Use DRIP evolved model, no need to change emissions.
+aparna@zeus:/data/aparna/stefano_stochhmm_peaks/top12_shift$ cp /data/aparna/scripts/GA/models/GA_StochHMM_DRIP_7state_model_25run50pop_FINAL.hmm /data/aparna/stefano_stochhmm_peaks/
+
+make a folder with all fasta files, the DRIP model. Then run this under screen:
+for fasta in *.customfa; do echo $fasta; stochhmm -seq $fasta -model GA_StochHMM_DRIP_7state_model_25run50pop_FINAL.hmm -posterior -threshold 0.9 -gff > $fasta.peaks.gff ; done
+
+aparna@zeus:/data/aparna/stefano_stochhmm_peaks$ cp top11_shift/*.customfa top12_shift/*.customfa scramble_shift/*.customfa control_shift/*.customfa peak_calling/
+
+running above stochhmm command
+
+9.5.14
+
+NEAT1 simulation done: 
+
+> neatdrip<-read.delim("NEAT1_DRIP_1mil_sim.txt", header=F)
+> neatdripc<-read.delim("NEAT1_DRIPc_1mil_sim.txt", header=F)
+> summary(neatdrip)
+       V1     
+ Min.   :355  
+ 1st Qu.:410  
+ Median :421  
+ Mean   :421  
+ 3rd Qu.:431  
+ Max.   :489  
+> summary(neatdripc)
+       V1     
+ Min.   :290  
+ 1st Qu.:338  
+ Median :348  
+ Mean   :348  
+ 3rd Qu.:358  
+ Max.   :415  
+
+Data:
+NEAT1 DRIP: 1042 (83%)
+NEAT1 DRIPc: 934 (75%)
+
+NEAT1 is significant to 10-6.
+
+For peak calling, the shift seems too much.
+With 5% of the top:
+
+> top11<-read.delim("top1_1_chr8.bed", header=F)
+> top12<-read.delim("top1_2_chr8.bed", header=F)
+> top11<-top11$V4
+> top12<-top12$V4
+> head(top11)
+[1] 1 1 1 1 1 1
+> top11<-sort(top11, decreasing=TRUE)
+> top12<-sort(top12, decreasing=TRUE)
+> head(top11)
+[1] 112 112 112 111 111 111
+> smalltop11<-top11[1:length(top11)*.05]
+> smalltop12<-top11[1:length(top12)*.05]
+> summary(smalltop11)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+  6.000   7.000   8.000   9.638  11.000 112.000 
+> summary(smalltop12)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+  5.000   6.000   8.000   9.322  10.000 112.000 
+>drip2<-read.delim("DRIP_NT2.wig2bed.out", header=F)
+> drip2<-drip2$V4
+> drip2<-sort(drip2, decreasing=TRUE)
+> smalldrip2<-drip2[1:length(drip2)*.05]
+> summary(smalldrip2)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+  17.65   20.61   24.95   30.92   34.80  253.00 
+> 24.95/8
+[1] 3.11875
+
+Taking 1% doesn't improve:
+> 49.78/15.00
+[1] 3.318667
+
+
+METHOD:
+
+> head(drip2)     
+[1] 253.000 251.016 249.031 247.047 247.047 247.047
+> roundeddrip2<-round(drip2)
+> head(roundeddrip2)
+[1] 253 251 249 247 247 247
+> summary(roundeddrip2)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+  2.000   3.000   4.000   6.354   6.000 253.000 
+> roundeddrip2<-roundeddrip2[roundeddrip2>6]
+> summary(roundeddrip2)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+   7.00    8.00   10.00   14.37   16.00  253.00 
+> roundeddrip1<-round(drip1)
+> summary(roundeddrip1)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+  1.000   1.000   1.000   1.652   2.000 102.000 
+> roundeddrip1<-roundeddrip1[roundeddrip1>2]
+> summary(roundeddrip1)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+  3.000   3.000   4.000   5.324   6.000 102.000 
+> 10/4
+[1] 2.5
+
+> top11<-read.delim("top1_1_chr8.bed", header=F)
+> top12<-read.delim("top1_2_chr8.bed", header=F)
+> top11<-top11$V4
+> top12<-top12$V4
+> round11<-round(top11)
+> round12<-round(top12)
+> summary(round11)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+  1.000   1.000   1.000   2.039   2.000 112.000 
+> summary(round12)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+  1.000   1.000   1.000   1.737   2.000 102.000 
+> round11<-round11[round11>2]
+> round12<-round12[round12>2]
+> summary(round11)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+   3.00    3.00    4.00    5.12    6.00  112.00 
+> summary(round12)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+   3.00    3.00    4.00    5.12    6.00  102.00 
+> 10/4
+[1] 2.5
+
+Re-do all shifts with a shift of 2.5
+->Running stochhmm now
+
+Downloaded the .sra's from the prioleau paper
+
+aparna@zeus:~/DATA/prioleau_replication_data$ fastq-dump --split-files ./SRR830646.sra 
+
+Repeating for all sra's
+
+Mapping:
+aparna@zeus:/data/aparna/prioleau_replication_data$ bowtie2 -x /data/Bowtie2_Indexes/hg19/hg19.fa -U SRR830646_1.fastq -S 46.sam
+
+made bash script bowtie_runs.sh to run all samples, under screen.
+
+aparna@zeus:/data/aparna/prioleau_replication_data/peaks$ bedtools intersect -a GSE46189_Ori-Peak.bed -b /data/aparna/replication_origins/s50/origin_files/common_origins/common_early_origins_ENCODE.bed > prioleau_early_common_int.bed
+aparna@zeus:/data/aparna/prioleau_replication_data/peaks$ bedtools intersect -a GSE46189_Ori-Peak.bed -b /data/aparna/replication_origins/s50/origin_files/common_origins/common_late_origins_ENCODE.bed > prioleau_late_common_int.bed
+
+aparna@zeus:/data/aparna/prioleau_replication_data/peaks$ bedtools intersect -a prioleau_early_common_int.
+bed -b /data/wearn/NT2_dripc/Peaks/NT2_DRIPc_merged_rep12_intersect_peaks.bed | awk '{print $3-$2}' | awk '{sum+=$1} END {print sum}'
+841666
+
+aparna@zeus:/data/aparna/prioleau_replication_data/peaks$ bedtools intersect -a prioleau_late_common_int.bed -b /data/wearn/NT2_dripc/Peaks/NT2_DRIPc_merged_rep12_intersect_peaks.bed | awk '{print $3-$2}' | awk '{sum+=$1} END {print sum}'
+484
+aparna@zeus:/data/aparna/prioleau_replication_data/peaks$ awk '{print $3-$2}' prioleau_early_common_int.bed | awk '{sum+=$1} END {print sum}'
+15936869
+aparna@zeus:/data/aparna/prioleau_replication_data/peaks$ awk '{print $3-$2}' prioleau_late_common_int.bed | awk '{sum+=$1} END {print sum}'
+1207572
+aparna@zeus:/data/aparna/prioleau_replication_data/peaks$ awk '{print $3-$2}' /data/wearn/NT2_dripc/Peaks/NT2_DRIPc_merged_rep12_intersect_peaks.bed | awk '{sum+=$1} END {print sum}'
+77164470
+aparna@zeus:/data/aparna/prioleau_replication_data/peaks$ bedtools intersect -a prioleau_early_common_int.
+bed -b /data/aparna/GA/final_peak_calls/peaks/clean/NT2_DRIP_intersect_peaks.bed | awk '{print $3-$2}' | awk '{sum+=$1} END {print sum}'
+2340286
+aparna@zeus:/data/aparna/prioleau_replication_data/peaks$ bedtools intersect -a prioleau_late_common_int.bed -b /data/aparna/GA/final_peak_calls/peaks/clean/NT2_DRIP_intersect_peaks.bed | awk '{print $3-$2}' | awk '{sum+=$1} END {print sum}'
+481
+aparna@zeus:/data/aparna/prioleau_replication_data/peaks$ awk '{print $3-$2}' /data/aparna/GA/final_peak_c
+alls/peaks/clean/NT2_DRIP_intersect_peaks.bed | awk '{sum+=$1} END {print sum}'
+105202966
+
+> #DRIPc_early / DRIPc
+> 841666/77164470*100
+[1] 1.090743
+> #DRIPc_early / Early
+> 841666/15936869 *100
+[1] 5.281251
+> #DRIPc_early/DRIPc_late
+> 841666/484
+[1] 1738.979
+> #DRIPc_late / DRIPc
+> 484/77164470*100
+[1] 0.0006272317
+> #DRIPc_late / Late 
+> 484/1207572*100 
+[1] 0.04008043
+> #DRIP_early/#DRIP_late
+> 2340286/481
+[1] 4865.459
+
+#need a simulation to make sure prioleau peaks actually make sense / are specific inside the "common early" peak.
+
+aparna@zeus:/data/aparna/prioleau_replication_data/peaks$ ./run_twointersects_on_coordinates.pl /data/aparna/trans_targets/gaps_hg19.bed /data/aparna/trans_targets/hg19.genome prioleau_early_common_int.bed /data/aparna/replication_origins/s50/origin_files/common_origins/common_early_origins_ENCODE.bed /data/wearn/NT2_dripc/Peaks/NT2_DRIPc_merged_rep12_intersect_peaks.bed /data/aparna/GA/final_peak_calls/peaks/clean/NT2_DRIP_intersect_peaks.bed 1k_sim_prioleau_early_dripc.txt 1k_sim_prioleau_early_drip.txt
+
+  removed the -excl gaps from the command because bedtools shuffle complained
+
+Sim runs very quickly
+
+> drip<-read.delim("1k_sim_prioleau_early_drip.txt", header=F)
+> dripc<-read.delim("1k_sim_prioleau_early_dripc.txt", header=F)
+> summary(drip)
+       V1      
+ Min.   :   0  
+ 1st Qu.:1101  
+ Median :1122  
+ Mean   :1080  
+ 3rd Qu.:1141  
+ Max.   :1215  
+> summary(dripc)
+       V1       
+ Min.   :  0.0  
+ 1st Qu.:565.0  
+ Median :580.0  
+ Mean   :557.7  
+ 3rd Qu.:596.0  
+ Max.   :641.0  
+
+should go to 10k
+
+> driplate<-read.delim("1k_sim_prioleau_late_drip.txt", header=F)
+> dripclate<-read.delim("1k_sim_prioleau_late_dripc.txt", header=F)
+> summary(driplate)
+       V1       
+ Min.   :0.000  
+ 1st Qu.:0.000  
+ Median :0.000  
+ Mean   :0.297  
+ 3rd Qu.:1.000  
+ Max.   :3.000  
+> summary(dripclate)
+       V1       
+ Min.   :0.000  
+ 1st Qu.:0.000  
+ Median :1.000  
+ Mean   :1.228  
+ 3rd Qu.:2.000  
+ Max.   :6.000  
+
+Not significant for late? Or significant in the opposite direction expected?
+
+10k early
+
+> dripcearly<-read.delim("10k_sim_prioleau_early_dripc.txt", header=F)
+> dripearly<-read.delim("10k_sim_prioleau_early_drip.txt", header=F)
+> summary(dripcearly)
+       V1     
+ Min.   :484  
+ 1st Qu.:566  
+ Median :581  
+ Mean   :581  
+ 3rd Qu.:596  
+ Max.   :654  
+> summary(dripearly)
+       V1      
+ Min.   :1012  
+ 1st Qu.:1104  
+ Median :1123  
+ Mean   :1123  
+ 3rd Qu.:1142  
+ Max.   :1224  
+
+10k late
+
+Type 'q()' to quit R.
+
+> dripclate<-read.delim("10k_sim_prioleau_late_dripc.txt", header=F)
+> driplate<-read.delim("10k_sim_prioleau_late_drip.txt", header=F)
+> summary(dripclate)
+       V1       
+ Min.   :0.000  
+ 1st Qu.:0.000  
+ Median :1.000  
+ Mean   :1.216  
+ 3rd Qu.:2.000  
+ Max.   :7.000  
+> summary(driplate)
+       V1        
+ Min.   :0.0000  
+ 1st Qu.:0.0000  
+ Median :0.0000  
+ Mean   :0.3178  
+ 3rd Qu.:1.0000  
+ Max.   :4.0000  
+
+
+aparna@zeus:/data/aparna/prioleau_replication_data/peaks$ bedtools intersect -a GSE46189_Ori-Peak.bed -b /
+data/wearn/NT2_dripc/Peaks/NT2_DRIPc_merged_rep12_intersect_peaks.bed | awk '{print $3 - $2}' | awk '{sum+=$1} END {print sum}'
+4060791
+aparna@zeus:/data/aparna/prioleau_replication_data/peaks$ awk '{print $3 - $2}' GSE46189_Ori-Peak.bed| awk '{sum+=$1} END {print sum}'
+107171500
+
+> 4060791/107171500*100
+[1] 3.789059
+
+BUT take into account that GSE* is K562 ONLY. Need to have temporal-independant list of common origins to overlap.
+
+9.8.14
+
+aparna@zeus:/data/aparna/stefano_stochhmm_peaks/peaks_2.5$ wc -l *.gff
+   59499 control_2.5.wig.customfa.peaks.gff
+   67337 scramble_2.5.wig.customfa.peaks.gff
+   77153 top11_2.5.wig.customfa.peaks.gff
+   56570 top12_2.5.wig.customfa.peaks.gff
+  260559 total
+ parna@zeus:/data/aparna/stefano_stochhmm_peaks$ wc -l peaks_3.234/*.gff
+   86264 peaks_3.234/control_shift_3.234.wig.customfa.peaks.gff
+   94555 peaks_3.234/scramble_shift_3.234.wig.customfa.peaks.gff
+  109149 peaks_3.234/top1_1_shift_3.234.wig.customfa.peaks.gff
+   82079 peaks_3.234/top1_2_shift_3.234.wig.customfa.peaks.gff
+  372047 total
+
+The peaks don't look bad, the wigs just appear quite similar.
+
+Final info:
+
+#peak counts
+aparna@zeus:/data/aparna/stefano_stochhmm_peaks/peaks_2.5$ wc -l *.peaks
+  59500 control_2.5.peaks
+  67338 scramble_2.5.peaks
+  77154 top11_2.5.peaks
+  56571 top12_2.5.peaks
+ 260563 total
+
+#avg lengths
+aparna@zeus:/data/aparna/stefano_stochhmm_peaks/peaks_2.5$ for f in *.peaks ; do echo $f; awk '{print $3 - $2}' $f | awk '{sum+=$1} END {print sum/NR}' ; done
+control_2.5.peaks
+1997.13
+scramble_2.5.peaks
+2231.65
+top11_2.5.peaks
+2142.75
+top12_2.5.peaks
+2212.38
+
+#total bp
+aparna@zeus:/data/aparna/stefano_stochhmm_peaks/peaks_2.5$ for f in *.peaks ; do echo $f; awk '{print $3 - $2}' $f | awk '{sum+=$1} END {print sum}' ; done
+control_2.5.peaks
+118829423
+scramble_2.5.peaks
+150274549
+top11_2.5.peaks
+165321741
+top12_2.5.peaks
+125156319
+
+Note: there are 0 length peaks and <100 length peaks.
+
+going to merge all cell line bedgraph files then recombine into .wig (using sum of scores) -> came out weird
+
+going to merge bam files with samtools
+
+Stefano DRIPc data in aparna@zeus:/media/drobo/Oldbackups/wearn/Stefano_dripc/Macs$                   
+9.9.14
+
+Stephano DRIPc data shift:
+(>3rd quartile after rounding)
+> summary(top11_plus)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+   5.00    6.00    9.00   11.43   14.00  118.00 
+> summary(top12_minus)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+   5.00    6.00    8.00   10.77   13.00  113.00 
+> summary(top12_plus)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+    5.0     6.0     8.0    10.1    12.0   107.0 
+> summary(top11_minus)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+   6.00    7.00   10.00   13.85   17.00  130.00 
+
+8.75 = combined median
+
+going to compare against DRIPc plus all chr8 because that was what GA was trained on
+> summary(dripc)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+   7.00    8.00   10.00   14.37   16.00  253.00 
+
+does each file need to be independently compared against dripc median? each one should be shifted differently? But if the control was ideal and v low, that would incorrectly shift it and cause peaks.
+
+Also, DRIPc plus all max is 253 but lower_wig2fa was used on DRIPc so maybe only rep1 was trained on ...
+
+Mapping prioleau data to common early INTERSECT prioleau peaks INTERSECT dripc peaks
+
+aparna@zeus:/data/aparna/prioleau_replication_data/mapping$ perl -I /usr/local/bin/Perl /usr/local/bin/Perl/map_wig_to_bed.pl -w ../wigs/all_prioleau_MERGED_SAMS.bedgraph.wig -v -r cache/ ../peaks/prioleau_early_common_dripc_intersect.bed 
+1. Output of ../peaks/prioleau_early_common_dripc_intersect.bed: .//all_prioleau_MERGED_SAMS_prioleau_early_common_dripc_intersect.txt
+
+Mapping prioleau data to common late INTERSECT prioleau peaks INTERSECT dripc peaks
+
+aparna@zeus:/data/aparna/prioleau_replication_data/mapping$ perl -I /usr/local/bin/Perl /usr/local/bin/Perl/map_wig_to_bed.pl -w ../wigs/all_prioleau_MERGED_SAMS.bedgraph.wig -v -r cache/ ../peaks/prioleau_late_common_dripc_intersect.bed 
+
+This gives "origin efficiency" info to specific origins
+
+1. Output of ../peaks/prioleau_late_common_dripc_intersect.bed: .//all_prioleau_MERGED_SAMS_prioleau_late_common_dripc_intersect.txt
+
+  Note: only chr17 processed for this one ...
+  There is only one region of intersection for this one: 
+  chr17   51183176        51183660
+
+What about dripc INTERSECT early/late NOINTERSECT prioleau?
+
+parna@zeus:/data/aparna/prioleau_replication_data/peaks$ bedtools intersect -a /data/wearn/NT2_dripc/Peaks/NT2_DRIPc_merged_rep12_intersect_peaks.bed -b /data/aparna/replication_origins/s50/origin_files/common_origins/common_early_origins_ENCODE.bed | bedtools intersect -v -a stdin -b GSE46189_Ori-Peak.bed > dripc_intersect_early_nointersect_prioleau.bed
+
+aparna@zeus:/data/aparna/prioleau_replication_data/peaks$ bedtools intersect -a /data/wearn/NT2_dripc/Peaks/NT2_DRIPc_merged_rep12_intersect_peaks.bed -b /data/aparna/replication_origins/s50/origin_files/common_origins/common_late_origins_ENCODE.bed | bedtools intersect -v -a stdin -b GSE46189_Ori-Peak.bed > dripc_intersect_late_nointersect_prioleau.bed
+
+aparna@zeus:/data/aparna/prioleau_replication_data/mapping$ perl -I /usr/local/bin/Perl /usr/local/bin/Perl/map_wig_to_bed.pl -w ../wigs/all_prioleau_MERGED_SAMS.bedgraph.wig -v -r cache/ ../peaks/dripc_intersect_early_nointersect_prioleau.bed 
+1. Output of ../peaks/dripc_intersect_early_nointersect_prioleau.bed: .//all_prioleau_MERGED_SAMS_dripc_intersect_early_nointersect_prioleau.txt
+
+aparna@zeus:/data/aparna/prioleau_replication_data/mapping$ perl -I /usr/local/bin/Perl /usr/local/bin/Perl/map_wig_to_bed.pl -w ../wigs/all_prioleau_MERGED_SAMS.bedgraph.wig -v -r cache/ ../peaks/dripc_intersect_late_nointersect_prioleau.bed 
+1. Output of ../peaks/dripc_intersect_late_nointersect_prioleau.bed: .//all_prioleau_MERGED_SAMS_dripc_intersect_late_nointersect_prioleau.txt
+
+
+
+Note: this will be incorrectly biased since prioleau peaks are CALLED on this data! Naturally any thing that doesn't overlap with a prioleau peak will have lower wig values ...
+
+should run:
+Prioleau INTERSECT early/late NOINTERSECT dripc to compare
+
+Also need to make figures from this data, or else it is too difficult to interpret.
+
+aparna@zeus:/data/aparna/prioleau_replication_data/peaks$ bedtools intersect -v -a prioleau_early_common_int.bed -b /data/wearn/NT2_dripc/Peaks/NT2_DRIPc_merged_rep12_intersect_peaks.bed > prioleau_intersect_early_nointersect_dripc.bed
+
+aparna@zeus:/data/aparna/prioleau_replication_data/peaks$ bedtools intersect -v -a prioleau_late_common_int.bed -b /data/wearn/NT2_dripc/Peaks/NT2_DRIPc_merged_rep12_intersect_peaks.bed > prioleau_intersect_late_nointersect_dripc.bed
+
+aparna@zeus:/data/aparna/prioleau_replication_data/mapping$ perl -I /usr/local/bin/Perl /usr/local/bin/Perl/map_wig_to_bed.pl -w ../wigs/all_prioleau_MERGED_SAMS.bedgraph.wig -v -r cache/ ../peaks/prioleau_intersect_early_nointersect_dripc.bed 
+
+1. Output of ../peaks/prioleau_intersect_early_nointersect_dripc.bed: .//all_prioleau_MERGED_SAMS_prioleau_intersect_early_nointersect_dripc.txt
+
+aparna@zeus:/data/aparna/prioleau_replication_data/mapping$ perl -I /usr/local/bin/Perl /usr/local/bin/Perl/map_wig_to_bed.pl -w ../wigs/all_prioleau_MERGED_SAMS.bedgraph.wig -v -r cache/ ../peaks/prioleau_intersect_late_nointersect_dripc.bed 
+
+What about the DRIPc wig value for 
+dripc INTERSECT early/late NOINTERSECT prioleau 
+vs
+dripc INTERSECT early/late INTERSECT prioleau
+
+Note: this wig file is suspect ... could map individually to early/late rep1/rep2 but that would take too long ...
+aparna@zeus:/data/aparna/prioleau_replication_data/mapping$ perl -I /usr/local/bin/Perl /usr/local/bin/Perl/map_wig_to_bed.pl -w /data/wearn/NT2_dripc/Combined_reps/NT2_dripc_MACS_wiggle/treat/NT2_dripc_treat_afterfiting_all.wig -v -r cache/ ../peaks/dripc_intersect_early_nointersect_prioleau.bed 
+1. Output of ../peaks/dripc_intersect_early_nointersect_prioleau.bed: .//NT2_dripc_treat_afterfiting_all_dripc_intersect_early_nointersect_prioleau.txt
+
+aparna@zeus:/data/aparna/prioleau_replication_data/mapping$ perl -I /usr/local/bin/Perl /usr/local/bin/Perl/map_wig_to_bed.pl -w /data/wearn/NT2_dripc/Combined_reps/NT2_dripc_MACS_wiggle/treat/NT2_dripc_treat_afterfiting_all.wig -v -r cache/ ../peaks/dripc_intersect_late_nointersect_prioleau.bed 
+1. Output of ../peaks/dripc_intersect_late_nointersect_prioleau.bed: .//NT2_dripc_treat_afterfiting_all_dripc_intersect_late_nointersect_prioleau.txt
+
+Correlate
+dripc INTERSECT early/late INTERSECT prioleau -> dripc wig
+dripc INTERSECT early/late INTERSECT prioleau -> prioleau wig
+
+comparing dripc heights to prioleau heights
+aparna@zeus:/data/aparna/prioleau_replication_data/mapping$ perl -I /usr/local/bin/Perl /usr/local/bin/Perl/map_wig_to_bed.pl -w /data/wearn/NT2_dripc/Combined_reps/NT2_dripc_MACS_wiggle/treat/NT2_dripc_treat_afterfiting_all.wig -v -r cache/ ../peaks/prioleau_early_common_dripc_intersect.bed 
+1. Output of ../peaks/prioleau_early_common_dripc_intersect.bed: .//NT2_dripc_treat_afterfiting_all_prioleau_early_common_dripc_intersect.txt
+
+aparna@zeus:/data/aparna/prioleau_replication_data/mapping$ perl -I /usr/local/bin/Perl /usr/local/bin/Perl/map_wig_to_bed.pl -w ../wigs/all_prioleau_MERGED_SAMS.bedgraph.wig -v -r cache/ ../peaks/prioleau_early_common_dripc_intersect.bed  
+1. Output of ../peaks/prioleau_early_common_dripc_intersect.bed: .//all_prioleau_MERGED_SAMS_prioleau_early_common_dripc_intersect.txt
+
+aparna@zeus:/data/aparna/prioleau_replication_data/mapping$ perl -I /usr/local/bin/Perl /usr/local/bin/Perl/map_wig_to_bed.pl -w /data/wearn/NT2_dripc/Combined_reps/NT2_dripc_MACS_wiggle/treat/NT2_dripc_treat_afterfiting_all.wig -v -r cache/ ../peaks/prioleau_late_common_dripc_intersect.bed
+1. Output of ../peaks/prioleau_late_common_dripc_intersect.bed: .//NT2_dripc_treat_afterfiting_all_prioleau_late_common_dripc_intersect.txt
+1. Output of ../peaks/prioleau_late_common_dripc_intersect.bed: .//all_prioleau_MERGED_SAMS_prioleau_late_common_dripc_intersect.txt
+
+-> late should be ignored because there is only ONE peak -- not enough for a boxplot!
+
+organized by making dir (in aparna@zeus:/data/aparna/prioleau_replication_data/mapping$)
+
+correlations/
+  dripc_prioleau_intersect_vs_dripc_prioleau_nointersect/
+  dripcwig_vs_prioleauwig_dripcpeaks/
+  prioleau_dripc_intersect_vs_prioleau_dripc_nointersect/
+
+
+aparna@zeus:/data/aparna/prioleau_replication_data/peaks$ bedtools intersect -wa -a /data/wearn/NT2_dripc/Peaks/NT2_DRIPc_merged_rep12_intersect_peaks.bed -b prioleau_early_common_int.bed > dripc_-wa_intersect_early_intersect_prioleau.bed
+aparna@zeus:/data/aparna/prioleau_replication_data/peaks$ bedtools intersect -wa -a /data/wearn/NT2_dripc/Peaks/NT2_DRIPc_merged_rep12_intersect_peaks.bed -b prioleau_late_common_int.bed > dripc_-wa_intersect_late_intersect_prioleau.bed
+aparna@zeus:/data/aparna/prioleau_replication_data/peaks$ bedtools intersect -wa -a prioleau_early_common_int.bed -b /data/wearn/NT2_dripc/Peaks/NT2_DRIPc_merged_rep12_intersect_peaks.bed > prioleau_early_-wa_dripc_intersect.bed
+aparna@zeus:/data/aparna/prioleau_replication_data/peaks$ bedtools intersect -wa -a prioleau_late_common_int.bed -b /data/wearn/NT2_dripc/Peaks/NT2_DRIPc_merged_rep12_intersect_peaks.bed > prioleau_late_-wa_dripc_intersect.bed
+
+aparna@zeus:/data/aparna/prioleau_replication_data/mapping$ perl -I /usr/local/bin/Perl /usr/local/bin/Perl/map_wig_to_bed.pl -w ../wigs/all_prioleau_MERGED_SAMS.bedgraph.wig -v -r cache/ ../peaks/prioleau_early_-wa_dripc_intersect.bed  
+
+1. Output of ../peaks/prioleau_early_-wa_dripc_intersect.bed: .//all_prioleau_MERGED_SAMS_prioleau_early_-wa_dripc_intersect.txt
+
+aparna@zeus:/data/aparna/prioleau_replication_data/mapping$ perl -I /usr/local/bin/Perl /usr/local/bin/Perl/map_wig_to_bed.pl -w ../wigs/all_prioleau_MERGED_SAMS.bedgraph.wig -v -r cache/ ../peaks/prioleau_late_-wa_dripc_intersect.bed 
+1. Output of ../peaks/prioleau_late_-wa_dripc_intersect.bed: .//all_prioleau_MERGED_SAMS_prioleau_late_-wa_dripc_intersect.txt
+
+aparna@zeus:/data/aparna/prioleau_replication_data/mapping$ perl -I /usr/local/bin/Perl /usr/local/bin/Perl/map_wig_to_bed.pl -w /data/wearn/NT2_dripc/Combined_reps/NT2_dripc_MACS_wiggle/treat/NT2_dripc_treat_afterfiting_all.wig -v -r cache/ ../peaks/dripc_-wa_intersect_early_intersect_prioleau.bed 
+1. Output of ../peaks/dripc_-wa_intersect_early_intersect_prioleau.bed: .//NT2_dripc_treat_afterfiting_all_dripc_-wa_intersect_early_intersect_prioleau.txt
+
+aparna@zeus:/data/aparna/prioleau_replication_data/mapping$ perl -I /usr/local/bin/Perl /usr/local/bin/Perl/map_wig_to_bed.pl -w /data/wearn/NT2_dripc/Combined_reps/NT2_dripc_MACS_wiggle/treat/NT2_dripc_treat_afterfiting_all.wig -v -r cache/ ../peaks/dripc_-wa_intersect_late_intersect_prioleau.bed 
+1. Output of ../peaks/dripc_-wa_intersect_late_intersect_prioleau.bed: .//NT2_dripc_treat_afterfiting_all_dripc_-wa_intersect_late_intersect_prioleau.txt
+
+prioleau reads for early intersect / nointersect with DRIPc is significant, but when divided by origin length (for origin efficiency) it's not significant.
+
+Nothing else is significant either.
+
+DRIP wig height for intersect/nointersect with prioleau is barely significant (p = 5E-4)
+
+9.10.14
+
+Going to make more time-specific BrdU origin files.
+
+aparna@zeus:/data/aparna/replication_origins/s50$ mkdir time_specific
+aparna@zeus:/data/aparna/replication_origins/s50$ cp -r *ENCODE time_specific/
+
+aparna@zeus:/data/aparna/replication_origins/s50/time_specific$ cp /data/aparna/scripts/s50/nograph_s50plot.R .
+
+modified nograph_s50plot.R to timespecific_nograph_s50plot.R in time_specific folder, it runs and appears to work fine. 
+
+Now need to modify s50_control_calc.sh -> done. timespecific_s50_control_calc.sh
+
+using /data/aparna/scripts/origin_*/make_clean or something to clean up files before intersecting:
+
+parna@zeus:/data/aparna/replication_origins/s50/time_specific$ for f in HeLa_ENCODE/*_all.txt ; do makeint.pl $f ; sort -k 1,1 -k 2,2n $f | bedtools intersect -v -a stdin -b /data/aparna/trans_targets/gaps_hg19.bed | bedtools merge -d 50000 -i stdin > $f.clean ; done
+
+aparna@zeus:/data/aparna/replication_origins/s50/time_specific$ for f in g1_all.txt s1_all.txt s2_all.txt s3_all.txt s4_all.txt g2_all.txt ; do echo $f ; bedtools intersect -a HeLa_ENCODE/$f -b K562_ENCODE/$f | bedtools intersect -a stdin -b GM_ENCODE/$f | bedtools intersect -a stdin -b BG02ES_ENCODE/$f | sort -k1,1 -k2,2n > common_$f ; done
+
+Note: these are all regions where there is an ORIGIN. This is v-shaped points only. So Late Replicating Regions are not represented -- each region contains an ORIGIN of replication, no matter what time point it is in. This is why NOTHING starts in g2, very few in s4, and a lot in g1/s1. 
+
+aparna@zeus:/data/aparna/replication_origins/s50/time_specific$ for f in common*; do echo $f ; bedtools intersect -a $f -b /data/wearn/NT2_dripc/Peaks/NT2_DRIPc_merged_rep12_intersect_peaks.bed | awk '{print $3 - $2}' | awk '{sum+=$1} END {print "DRIPc bp overlap: "sum}' ; awk '{print $3 - $2}' $f | awk '{sum+=$1} END {print "bp in origin file: "sum}'  ; done
+common_g1_all.txt
+DRIPc bp overlap: 3666249
+bp in origin file: 62887216
+common_g2_all.txt
+Error: The requested bed file (common_g2_all.txt) could not be opened. Exiting!
+DRIPc bp overlap: 
+bp in origin file: 
+common_s1_all.txt
+DRIPc bp overlap: 5874761
+bp in origin file: 144962001
+common_s2_all.txt
+DRIPc bp overlap: 71272
+bp in origin file: 3820853
+common_s3_all.txt
+DRIPc bp overlap: 8194
+bp in origin file: 1850839
+common_s4_all.txt
+DRIPc bp overlap: 
+bp in origin file: 981822
+
+aparna@zeus:/data/aparna/replication_origins/s50/time_specific$ awk '{print $3 - $2}' /data/wearn/NT2_dripc/Peaks/NT2_DRIPc_merged_rep12_intersect_peaks.bed | awk '{sum+=$1} END {print sum}'
+77164470
+
+> #G1 dripc_overlap/dripc*100
+> 3666249/77164470*100
+[1] 4.751214
+> #G1 dripc_overlap/originfile*100
+> 3666249/62887216*100
+[1] 5.82988
+> #S1 dripc_overlap/dripc*100
+> 5874761/77164470*100
+[1] 7.613298
+> #S1 dripc_overlap/originfile*100
+> 5874761/144962001*100
+[1] 4.052621
+> #S2 dripc_overlap/dripc*100
+> 71272/77164470*100
+[1] 0.09236375
+> #S2 dripc_overlap/originfile*100
+> 71272/3820853*100
+[1] 1.865343
+> #S3 dripc_overlap/dripc*100
+> 8194/77164470*100
+[1] 0.01061888
+> #S3 dripc_overlap/originfile*100
+> 8194/1850839*100
+[1] 0.4427181
+> #S4 and G2 had 0 bp dripc overlap
+
+Need to run 1mil simulations G1-S3
+
+aparna@zeus:/data/aparna/prioleau_replication_data/peaks$ bedtools intersect -a GSE46189_Ori-Peak.bed  -b /data/aparna/replication_origins/s50/time_specific/common_g1_all.txt > time_specific/common_g1_prioleau_peaks.bed
+aparna@zeus:/data/aparna/prioleau_replication_data/peaks$ bedtools intersect -a GSE46189_Ori-Peak.bed  -b /data/aparna/replication_origins/s50/time_specific/common_s1_all.txt > time_specific/common_s1_prioleau_peaks.bed
+aparna@zeus:/data/aparna/prioleau_replication_data/peaks$ bedtools intersect -a GSE46189_Ori-Peak.bed  -b /data/aparna/replication_origins/s50/time_specific/common_s2_all.txt > time_specific/common_s2_prioleau_peaks.bed
+aparna@zeus:/data/aparna/prioleau_replication_data/peaks$ bedtools intersect -a GSE46189_Ori-Peak.bed  -b /data/aparna/replication_origins/s50/time_specific/common_s3_all.txt > time_specific/common_s3_prioleau_peaks.bed
+
+-> should this have been -wo ?
+aparna@zeus:/data/aparna/prioleau_replication_data/peaks/time_specific$ for f in * ; do echo $f ; awk '{print $3-$2}' $f | awk '{sum+=$1} END {print "bp in file: "sum}' ; bedtools intersect -a $f -b /data/wearn/NT2_dripc/Peaks/NT2_DRIPc_merged_rep12_intersect_peaks.bed | awk '{print $3 - $2}' | awk '{sum+=$1} END {print "DRIPc bp overlap: "sum}'; done
+common_g1_prioleau_peaks.bed
+bp in file: 6255976
+DRIPc bp overlap: 353098
+common_s1_prioleau_peaks.bed
+bp in file: 6310512
+DRIPc bp overlap: 280046
+common_s2_prioleau_peaks.bed
+bp in file: 74157
+DRIPc bp overlap: 
+common_s3_prioleau_peaks.bed
+bp in file: 2463
+DRIPc bp overlap: 
+
+> #G1 prioleau intersect. dripc_overlap / prioleau_bp * 100
+> 353098/6255976*100
+[1] 5.644171
+> #S1 prioleau intersect. dripc_overlap / prioleau_bp * 100
+> 280046/6310512*100
+[1] 4.43777
+
+running g1 simulation. 
+
+remapped with -m option, outfiles are in aparna@zeus:/data/aparna/prioleau_replication_data/mapping/m_option/
+-> same results
+-> origin efficiency not significant, DRIPc signal not significant, origin signal strength very significant (10-22). 
+
+> summary(pintlen)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+    192    1999    2871    4495    5672   25790 
+> summary(pnointlen)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+     50    1999    2099    2990    3187   21070 
+> wilcox.test(pintlen, pnointlen, alternative="two.sided")$p.value
+[1] 1.178305e-32
+
+Prioleau Origins that intersect with DRIPc are significantly longer than those that do not WITHIN a BrdU early replicating region
+
+> length(pint$V4)
+[1] 751
+> length(pnoint$V4)
+[1] 4537
+
+#signal strength
+> wilcox.test(pint$V4, pnoint$V4, alternative="two.sided")$p.value
+[1] 4.265708e-20
+> summary(pint$V4)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+  0.122   0.912   1.584   3.839   3.927  88.420 
+> summary(pnoint$V4)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+  0.000   0.727   1.125   2.174   2.053  53.040 
+
+#DRIPc length IS significant
+> wilcox.test(dripcintlen, dripcnointlen, alternative="two.sided")$p.value
+[1] 7.082308e-16
+> length(dripcintlen)
+[1] 751
+> length(dripcnointlen)
+[1] 5982
+
+#DRIPc signal not (very) significant
+> wilcox.test(dripcint$V4, dripcnoint$V4, alternative="two.sided")$p.value
+[1] 0.001659403
+
+9.11.14
+
+G1 simulation done:
+> sim<-read.delim("1mil_common_g1_brdu_dripc.txt", header=F)
+> summary(sim$V1)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+1300000 1977000 2106000 2111000 2241000 2953000 
+> #G1 sim dripc_overlap / dripc * 100
+> summary(sim$V1/77164470*100)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+  1.684   2.562   2.730   2.735   2.904   3.826 
+> #G1 sim dripc_overlap / originfile * 100
+> summary(sim$V1/62887216*100)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+  2.067   3.144   3.350   3.356   3.564   4.695 
+
+#Significant to p < 1E-6
+
+#Actual data
+> #G1 dripc_overlap/dripc*100
+> 3666249/77164470*100
+[1] 4.751214
+> #G1 dripc_overlap/originfile*100
+> 3666249/62887216*100
+[1] 5.82988
+
+
+Starting S1 sim :
+aparna@zeus:/data/aparna/replication_origins/s50/stats/another_run/time_specific/s1$ ./run_twointersects.pl /data/aparna/trans_targets/gaps_hg19.bed /data/aparna/trans_targets/hg19.genome /data/aparna/replication_origins/s50/time_specific/common_s1_all.txt /data/wearn/NT2_dripc/Peaks/NT2_DRIPc_merged_rep12_intersect_peaks.bed 1mil_common_s1_brdu_dripc.txt
+
+writing script to shuffle within early regions
+
+bedtools shuffle for prioleau was wrong! was using wc -l instead of bp count!
+
+Redid script (run_on_coordinates) and am rerunning.
+
+aparna@zeus:/data/aparna/prioleau_replication_data/peaks$ ./run_on_coordinates.pl /data
+/aparna/trans_targets/gaps_hg19.bed /data/aparna/trans_targets/hg19.genome prioleau_early_common_int.bed /data/aparna/replication_origins/s50/origin_files/common_origins/common_early_origins_ENCODE.bed /data/wearn/NT2_dripc/Peaks/NT2_DRIPc_merged_rep12_intersect_peaks.bed sims/1milsim_prioleauearly_dripc.txt
+
+  Need to run after current simulation for S1 finishes. Writing new shuffling script, but its results show DRIPc and prioleau early overlap are nonsignificant ... 
+
+Shuffling script is not wrong! Just ran bedtools shuffle for ~2k and ...
+
+> summary(sim$V1)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+ 671500  789300  818800  818900  846900  962900
+
+Not significant overlap ... at least according to DRIPc, the prioleau peaks are at random in the common early region.
+
+There is a lot of DRIPc in that region not associated with replication? DRIPc is present at origin but does not persist? Their peak calling is not that good?
+
+Use their peaks to filter DRIPc into "origin associated" and not, and then test this "origin associated" peakset against known origin markers - ORC1, H4K20Me1, etc. compare to "non-origin-associated" DRIPc, either within the same replicating region or in "maxes" from other/random parts of cell cycle. Make a file of all "max" regions???? These are pretty definitely NOT "origin associated" regions -- they are at the wrong end of the V, no matter where they are in the cell cycle. -> would have to be in the same "origin-associated" region because obviously ORC1 etc will be depleted no matter what in the origin-not-associated regions
+.
+
+#downloaded ORC1 dataset:
+aparna@zeus:/data/aparna/replication_origins/s50/correlations/orc1$ 
+
+the "enrichRegions" file is the peakfile.
+
+aparna@zeus:/data/aparna/replication_origins/s50/correlations/orc1$ bedtools intersect -a datasets/GSM922790_ChIPseq_Orc1_GradientHela_enrichRegions.bed -b /data/aparna/prioleau_replication_data/peaks/dripc_-wa_intersect_early_intersect_prioleau.bed | awk '{print $3 - $2}' | awk '{sum+=$1} END {print sum}'
+38525
+aparna@zeus:/data/aparna/replication_origins/s50/correlations/orc1$ awk '{print $3 - $2}' datasets/GSM922790_ChIPseq_Orc1_GradientHela_enrichRegions.bed | awk '{sum+=$1} END {print sum}'
+11439687
+aparna@zeus:/data/aparna/replication_origins/s50/correlations/orc1$ awk '{print $3 - $2}' /data/aparna/prioleau_replication_data/peaks/dripc_-wa_intersect_early_intersect_prioleau.bed | awk '{sum+=$1} END {print sum}'
+1654668
+aparna@zeus:/data/aparna/replication_origins/s50/correlations/orc1$ bedtools intersect -a datasets/GSM922790_ChIPseq_Orc1_GradientHela_enrichRegions.bed -b /data/aparna/prioleau_replication_data/peaks/dripc_intersect_early_nointersect_prioleau.bed | awk '{print $3 - $2}' | awk '{sum+=$1} END {print sum}'
+55401
+aparna@zeus:/data/aparna/replication_origins/s50/correlations/orc1$ awk '{print $3 - $2}' /data/aparna/prioleau_replication_data/peaks/dripc_intersect_early_nointersect_prioleau.bed | awk '{sum+=$1} END {print sum}'
+9884747
+
+(Orc1_dripc_early_prioleau_overlap / dripc_early_prioleau_overlap ) / (Orc1_dripc_early_noprioleau_overlap / dripc_early_noprioleau_overlap) 
+
+# Fold increase:
+>  2.328262/0.005604696
+[1] 415.4127
+
+Should map to orc1 and do wilcox test, as well as ANOTHER simulation. Looks hopeful ...
+Also overlap with DRIPc in general?
+
+Should also repeat all correlations with DRIP
+
+Should also do ORC1 correlation with prioleau_dripc and prioleau_nodripc to control for whether it's just the presence of prioleau peaks that make orc1 appear there. if both of these are the same ... less hopeful.
+
+aparna@zeus:/data/aparna/replication_origins/s50/correlations/orc1$ bedtools intersect -a datasets/GSM9227
+90_ChIPseq_Orc1_GradientHela_enrichRegions.bed -b /data/aparna/prioleau_replication_data/peaks/prioleau_early_-wa_dripc_intersect.bed | awk '{print $3 - $2}' | awk '{sum+=$1} END {print sum}'
+121266
+aparna@zeus:/data/aparna/replication_origins/s50/correlations/orc1$ bedtools intersect -a datasets/GSM922790_ChIPseq_Orc1_GradientHela_enrichRegions.bed -b /data/aparna/prioleau_replication_data/peaks/prioleau_intersect_early_nointersect_dripc.bed | awk '{print $3 - $2}' | awk '{sum+=$1} END {print sum}'
+532938
+aparna@zeus:/data/aparna/replication_origins/s50/correlations/orc1$ awk '{print $3 - $2}' /data/aparna/prioleau_replication_data/peaks/prioleau_early_-wa_dripc_intersect.bed | awk '{sum+=$1} END {print sum}'
+3376104
+aparna@zeus:/data/aparna/replication_origins/s50/correlations/orc1$ awk '{print $3 - $2}' /data/aparna/pri
+oleau_replication_data/peaks/prioleau_intersect_early_nointersect_dripc.bed | awk '{sum+=$1} END {print sum}'
+13567240
+
+> (121266/3376104) / (532938/13567240) 
+[1] 0.9144039
+
+...So basically no fold increase because DRIPc. Still map. Is this what would be expected if prioleau was distributed at random? The signal may still be significant ... map both dripc+prioleau dripc-prioleau prioleau+dripc prioleau-dripc
+
+9.12.14
+
+aparna@zeus:/data/aparna/replication_origins/s50/correlations/orc1/datasets$ bedgraph_to_wig.pl GSM922790_ChIPseq_Orc1_GradientHela.bedGraph 
+
+Mapping:
+
+DRIPc + Prioleau
+
+aparna@zeus:/data/aparna/replication_origins/s50/correlations/orc1$ perl -I /usr/local/bin/Perl /usr/local/bin/Perl/map_wig_to_bed.pl -m -w datasets/GSM922790_ChIPseq_Orc1_GradientHela.bedGraph.wig -v -r orc1_cache/ /data/aparna/prioleau_replication_data/peaks/dripc_-wa_intersect_early_intersect_prioleau.bed 
+
+1. Output of /data/aparna/prioleau_replication_data/peaks/dripc_-wa_intersect_early_intersect_prioleau.bed: .//GSM922790_ChIPseq_Orc1_GradientHela_dripc_-wa_intersect_early_intersect_prioleau.txt
+
+DRIPc - Prioleau
+aparna@zeus:/data/aparna/replication_origins/s50/correlations/orc1$ perl -I /usr/local/bin/Perl /usr/local/bin/Perl/map_wig_to_bed.pl -m -w datasets/GSM922790_ChIPseq_Orc1_GradientHela.bedGraph.wig -v -r orc1_cache/ /data/aparna/prioleau_replication_data/peaks/dripc_intersect_early_nointersect_prioleau.bed   
+
+1. Output of /data/aparna/prioleau_replication_data/peaks/dripc_intersect_early_nointersect_prioleau.bed: .//GSM922790_ChIPseq_Orc1_GradientHela_dripc_intersect_early_nointersect_prioleau.txt
+
+Prioleau + DRIPc
+aparna@zeus:/data/aparna/replication_origins/s50/correlations/orc1$ perl -I /usr/local/bin/Perl /usr/local
+/bin/Perl/map_wig_to_bed.pl -m -w datasets/GSM922790_ChIPseq_Orc1_GradientHela.bedGraph.wig -v -r orc1_cache/ /data/aparna/prioleau_replication_data/peaks/prioleau_early_-wa_dripc_intersect.bed 
+
+1. Output of /data/aparna/prioleau_replication_data/peaks/prioleau_early_-wa_dripc_intersect.bed: .//GSM922790_ChIPseq_Orc1_GradientHela_prioleau_early_-wa_dripc_intersect.txt
+
+Prioleau - DRIPc
+
+aparna@zeus:/data/aparna/replication_origins/s50/correlations/orc1$ perl -I /usr/local/bin/Perl /usr/local/bin/Perl/map_wig_to_bed.pl -m -w datasets/GSM922790_ChIPseq_Orc1_GradientHela.bedGraph.wig -v -r orc1_cache/ /data/aparna/prioleau_replication_data/peaks/prioleau_intersect_early_nointersect_dripc.bed
+
+1. Output of /data/aparna/prioleau_replication_data/peaks/prioleau_intersect_early_nointersect_dripc.bed: .//GSM922790_ChIPseq_Orc1_GradientHela_prioleau_intersect_early_nointersect_dripc.txt
+
+> d_p<-read.delim("GSM922790_ChIPseq_Orc1_GradientHela_dripc_-wa_intersect_early_intersect_prioleau.txt", header=F)
+> d_np<-read.delim("GSM922790_ChIPseq_Orc1_GradientHela_dripc_intersect_early_nointersect_prioleau.txt", header=F)
+> p_d<-read.delim("GSM922790_ChIPseq_Orc1_GradientHela_prioleau_early_-wa_dripc_intersect.txt", header=F)
+> p_nd<-read.delim("GSM922790_ChIPseq_Orc1_GradientHela_prioleau_intersect_early_nointersect_dripc.txt", header=F)
+
+> wilcox.test(d_p$V4, d_np$V4, alterative="two.sided")$p.value
+[1] 1.633302e-46
+> wilcox.test(p_d$V4, p_nd$V4, alterative="two.sided")$p.value
+[1] 0.0004920239
+
+DRIPc has very significant difference with ORC1 binding, Prioleau has less, but still significant.
+
+> summary(d_p$V4)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+ 0.0000  0.1865  0.3730  0.5136  0.6280 29.5500 
+> summary(d_np$V4)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+ 0.0000  0.0000  0.1950  0.2796  0.4060 10.4800 
+> summary(p_d$V4)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+ 0.0000  0.3075  0.4620  0.5292  0.6560  5.2060 
+> summary(p_nd$V4)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+ 0.0000  0.2190  0.4340  0.5128  0.6530 13.5200 
+
+#H4K20Me1
+> wilcox.test(d_p$V4, d_np$V4, alternative="two.sided")$p.value
+[1] 1.035707e-05
+> wilcox.test(p_d$V4, p_nd$V4, alternative="two.sided")$p.value
+[1] 2.408749e-105
+
+> summary(p_d$V4)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max.
+  0.185   3.010   4.048   4.472   5.386  15.440
+> summary(p_nd$V4)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max.
+  0.059   1.708   2.440   2.888   3.511  19.450
+> summary(d_p$V4)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max.
+  0.000   3.187   4.399   5.030   6.095  26.050
+> summary(d_np$V4)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max.
+  0.000   2.856   4.067   4.601   5.735  41.250
+
+#S1 sim
+summary(sim$V1)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+2643000 3572000 3762000 3768000 3958000 5176000 
+
+dripc_s1overlap / dripc * 100
+> summary(sim$V1/77164470*100)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+  3.426   4.629   4.875   4.883   5.130   6.707 
+> #Actual: 7.613298
+dripc_s1overlap / originfile * 100
+> summary(sim$V1/144962001*100)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+  1.823   2.464   2.595   2.599   2.731   3.570 
+> #Actual: 4.052621
+
+Significant to p < 10-6
+
+9.15.14
+
+#S2 simulation
+## over DRIPc
+> summary(sim$V1 / 77164470*100)
+     Min.   1st Qu.    Median      Mean   3rd Qu.      Max. 
+0.0001698 0.0707100 0.1009000 0.1065000 0.1364000 0.3882000 
+##Over originfile
+> summary(sim$V1 / 3820853*100)
+    Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
+0.003429 1.428000 2.039000 2.151000 2.754000 7.841000 
+
+NOT significant (actual data below) : 
+#S2 dripc_overlap/dripc*100
+71272/77164470*100
+[1] 0.09236375
+#S2 dripc_overlap/originfile*100
+71272/3820853*100
+[1] 1.865343
+
+> count_larger<-sim$V1[sim$V1 / 77164470*100 > 0.09236375]
+> length(count_larger)
+[1] 571491
+> count_smaller<-sim$V1[sim$V1 / 77164470*100 < 0.09236375]
+> length(count_smaller)
+[1] 428069
+#Really not significant. Running S3 anyway.
+
+aparna@zeus:/data/aparna/replication_origins/s50/stats/another_run/time_specific/s3$ ./run_twointersects.pl /data/aparna/trans_targets/gaps_hg19.bed /data/aparna/trans_targets/hg19.genome /data/aparna/replication_origins/s50/time_specific/common_s3_all.txt /data/wearn/NT2_dripc/Peaks/NT2_DRIPc_merged_rep12_intersect_peaks.bed 1mil_s3_dripc.txt
+
+aparna@zeus:/data/aparna/prioleau_replication_data/peaks$ bedtools intersect -wa -a pri
+oleau_early_common_int.bed -b /data/aparna/GA/final_peak_calls/peaks/clean/NT2_DRIP_intersect_peaks.bed > prioleau_early_-wa-drip_intersect.bed
+
+aparna@zeus:/data/aparna/prioleau_replication_data/peaks$ bedtools intersect -v -a prioleau_early_common_int.bed -b /data/aparna/GA/final_peak_calls/peaks/clean/NT2_DRIP_intersect_peaks.bed > prioleau_intersect_early_nointersect_drip.bed
+
+aparna@zeus:/data/aparna/prioleau_replication_data/peaks$ bedtools intersect -wa -a /data/aparna/GA/final_peak_calls/peaks/clean/NT2_DRIP_intersect_peaks.bed -b prioleau_early_common_int.bed > drip_-wa_intersect_early_intersect_prioleau.bed
+
+# moving the eight files here
+aparna@zeus:/data/aparna/prioleau_replication_data/peaks$ mkdir early_replicating_regions_intersects
+
+aparna@zeus:/data/aparna/prioleau_replication_data/peaks/early_replicating_regions_inte
+rsects$ l
+drip_-wa_intersect_early_intersect_prioleau.bed
+drip_intersect_early_nointersect_prioleau.bed
+dripc_-wa_intersect_early_intersect_prioleau.bed
+dripc_intersect_early_nointersect_prioleau.bed
+prioleau_early_-wa_drip_intersect.bed
+prioleau_early_-wa_dripc_intersect.bed
+prioleau_intersect_early_nointersect_drip.bed
+prioleau_intersect_early_nointersect_dripc.bed
+
+#These are the eight files to map / correlate.
+The DRIPc ones are already done for prioleau signal, dripc signal, lengths of peaks, ORC1, H4K20Me1
+
+Made new folders to organize in /data/aparna/replication_origins/s50/correlations
+
+Moving already-mapped files there
+aparna@zeus:/data/aparna/prioleau_replication_data/mapping/m_option$ mv * /data/aparna/replication_origins/s50/correlations/prioleau_origin_signal/
+
+Statistics on DRIP and Prioleau peaks:
+> d_p<-read.delim("drip_-wa_intersect_early_intersect_prioleau.bed", header=F)
+> d_np<-read.delim("drip_intersect_early_nointersect_prioleau.bed", header=F)
+> p_d<-read.delim("prioleau_early_-wa_drip_intersect.bed", header=F)
+> p_nd<-read.delim("prioleau_intersect_early_nointersect_drip.bed", header=F)
+> 
+# Number of peaks:
+> length(d_p$V2)
+[1] 1848
+> length(d_np$V2)
+[1] 11834
+> length(p_d$V1)
+[1] 1848
+> length(p_nd$V1)
+[1] 3869
+
+# peak lengths:
+> summary(d_p$V3-d_p$V2)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+     18     900    1990    3009    3791   28620 
+> summary(d_np$V3-d_np$V2)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+      1     579    1224    1809    2374   21110 
+> summary(p_d$V3-p_d$V2)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+     50    1999    2814    4320    5496   25790 
+> summary(p_nd$V3-p_nd$V2)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+     97    1999    2078    2923    3070   21070 
+
+#Significance:
+> wilcox.test((d_p$V3-d_p$V2), (d_np$V3-d_np$V2), alternative="two.sided")$p.value
+[1] 2.569102e-67
+> wilcox.test((p_d$V3-p_d$V2), (p_nd$V3-p_nd$V2), alternative="two.sided")$p.value
+[1] 1.134497e-56
+
+
+# total bp
+> sum(d_p$V3-d_p$V2)
+[1] 5560056
+> sum(d_np$V3-d_np$V2)
+[1] 21409649
+> sum(p_d$V3-p_d$V2)
+[1] 7983082
+> sum(p_nd$V3-p_nd$V2)
+[1] 11307981
+
+#for total bp, num peaks signficance need to run simulations.
+
+ORC1 DRIP:
+aparna@zeus:/data/aparna/replication_origins/s50/correlations/orc1$ perl -I /usr/local/bin/Perl /usr/local/bin/Perl/map_wig_to_bed.pl -m -w datasets/GSM922790_ChIPseq_Orc1_GradientHela.bedGraph.wig -v -r orc1_cache/ /data/aparna/prioleau_replication_data/peaks/early_replicating_regions_intersects/prioleau_early_-wa_drip_intersect.bed 
+1. Output of /data/aparna/prioleau_replication_data/peaks/early_replicating_regions_intersects/prioleau_early_-wa_drip_intersect.bed: .//GSM922790_ChIPseq_Orc1_GradientHela_prioleau_early_-wa_drip_intersect.txt
+
+aparna@zeus:/data/aparna/replication_origins/s50/correlations/orc1$ perl -I /usr/local/bin/Perl /usr/local/bin/Perl/map_wig_to_bed.pl -m -w datasets/GSM922790_ChIPseq_Orc1_GradientHela.bedGraph.wig -v -r orc1_cache/ /data/aparna/prioleau_replication_data/peaks/early_replicating_regions_intersects/prioleau_intersect_early_nointersect_drip.bed 
+1. Output of /data/aparna/prioleau_replication_data/peaks/early_replicating_regions_intersects/prioleau_intersect_early_nointersect_drip.bed: .//GSM922790_ChIPseq_Orc1_GradientHela_prioleau_intersect_early_nointersect_drip.txt
+
+aparna@zeus:/data/aparna/replication_origins/s50/correlations/orc1$ perl -I /usr/local/
+bin/Perl /usr/local/bin/Perl/map_wig_to_bed.pl -m -w datasets/GSM922790_ChIPseq_Orc1_GradientHela.bedGraph.wig -v -r orc1_cache/ /data/aparna/prioleau_replication_data/peaks/early_replicating_regions_intersects/drip_-wa_intersect_early_intersect_prioleau.bed 
+1. Output of /data/aparna/prioleau_replication_data/peaks/early_replicating_regions_intersects/drip_-wa_intersect_early_intersect_prioleau.bed: .//GSM922790_ChIPseq_Orc1_GradientHela_drip_-wa_intersect_early_intersect_prioleau.txt
+
+aparna@zeus:/data/aparna/replication_origins/s50/correlations/orc1$ perl -I /usr/local/bin/Perl /usr/local/bin/Perl/map_wig_to_bed.pl -m -w datasets/GSM922790_ChIPseq_Orc1_GradientHela.bedGraph.wig -v -r orc1_cache/ /data/aparna/prioleau_replication_data/peaks/early_replicating_regions_intersects/drip_intersect_early_nointersect_prioleau.bed  
+1. Output of /data/aparna/prioleau_replication_data/peaks/early_replicating_regions_intersects/drip_intersect_early_nointersect_prioleau.bed: .//GSM922790_ChIPseq_Orc1_GradientHela_drip_intersect_early_nointersect_prioleau.txt
+
+> wilcox.test(d_p$V4, d_np$V4, alternative="two.sided")$p.value
+[1] 7.263766e-120
+> wilcox.test(p_d$V4, p_nd$V4, alternative="two.sided")$p.value
+[1] 2.389206e-09
+
+> summary(d_p$V4)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+ 0.0000  0.1927  0.3905  0.5027  0.6515 14.5100 
+> summary(d_np$V4)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+ 0.0000  0.0000  0.2000  0.2823  0.4130  8.3030 
+> summary(p_d$V4)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+ 0.0000  0.3017  0.4660  0.5558  0.6690  6.9940 
+> summary(p_nd$V4)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+ 0.0000  0.2190  0.4290  0.5032  0.6510 13.5200 
+
+DRIP H4K20Me1
+aparna@zeus:/data/aparna/replication_origins/s50/correlations/h4K20me1$ perl -I /usr/local/bin/Perl /usr/local/bin/Perl/map_wig_to_bed.pl -m -w dataset/H4K20me1.wig -v -r h4k20me1_cache/ /data/aparna/prioleau_replication_data/peaks/early_replicating_regions_intersects/prioleau_early_-wa_drip_intersect.bed 
+1. Output of /data/aparna/prioleau_replication_data/peaks/early_replicating_regions_intersects/prioleau_early_-wa_drip_intersect.bed: .//H4K20me1_prioleau_early_-wa_drip_intersect.txt
+
+aparna@zeus:/data/aparna/replication_origins/s50/correlations/h4K20me1$ perl -I /usr/local/bin/Perl /usr/local/bin/Perl/map_wig_to_bed.pl -m -w dataset/H4K20me1.wig -v -r h4k20me1_cache/ /data/aparna/prioleau_replication_data/peaks/early_replicating_regions_intersects/prioleau_intersect_early_nointersect_drip.bed 
+1. Output of /data/aparna/prioleau_replication_data/peaks/early_replicating_regions_intersects/prioleau_intersect_early_nointersect_drip.bed: .//H4K20me1_prioleau_intersect_early_nointersect_drip.txt
+
+aparna@zeus:/data/aparna/replication_origins/s50/correlations/h4K20me1$ perl -I /usr/local/bin/Perl /usr/local/bin/Perl/map_wig_to_bed.pl -m -w dataset/H4K20me1.wig -v -r h4k20me1_cache/ /data/aparna/prioleau_replication_data/peaks/early_replicating_regions_intersects/drip_-wa_intersect_early_intersect_prioleau.bed 
+1. Output of /data/aparna/prioleau_replication_data/peaks/early_replicating_regions_intersects/drip_-wa_intersect_early_intersect_prioleau.bed: .//H4K20me1_drip_-wa_intersect_early_intersect_prioleau.txt
+
+aparna@zeus:/data/aparna/replication_origins/s50/correlations/h4K20me1$ perl -I /usr/local/bin/Perl /usr/local/bin/Perl/map_wig_to_bed.pl -m -w dataset/H4K20me1.wig -v -r h4k20me1_cache/ /data/aparna/prioleau_replication_data/peaks/early_replicating_regions_intersects/drip_intersect_early_nointersect_prioleau.bed   
+1. Output of /data/aparna/prioleau_replication_data/peaks/early_replicating_regions_intersects/drip_intersect_early_nointersect_prioleau.bed: .//H4K20me1_drip_intersect_early_nointersect_prioleau.txt
+
+ 
+> d_np<-read.delim("H4K20me1_drip_intersect_early_nointersect_prioleau.txt", header=F)
+> p_d<-read.delim("H4K20me1_prioleau_early_-wa_drip_intersect.txt", header=F)
+> p_nd<-read.delim("H4K20me1_prioleau_intersect_early_nointersect_drip.txt", header=F)
+
+> wilcox.test(d_p$V4, d_np$V4, alternative="two.sided")$p.value
+[1] 0.0001291271
+> wilcox.test(p_d$V4, p_nd$V4, alternative="two.sided")$p.value
+[1] 2.341214e-215
+
+> summary(d_p$V4)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+  0.000   2.852   4.025   4.485   5.430  29.990 
+> summary(d_np$V4)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+  0.000   2.613   3.820   4.295   5.348  33.480 
+> summary(p_d$V4)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+  0.691   2.748   3.768   4.246   5.064  18.890 
+> summary(p_nd$V4)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+  0.059   1.617   2.289   2.679   3.269  19.450 
+
+DRIPc Prioleau signal stats
+> wilcox.test(p_d$V4, p_nd$V4, alternative="two.sided")$p.value
+[1] 4.265708e-20
+> summary(p_d$V4)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+  0.122   0.912   1.584   3.839   3.927  88.420 
+> summary(p_nd$V4)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+  0.000   0.727   1.125   2.174   2.053  53.040 
+
+DRIP Prioleau signal
+aparna@zeus:/data/aparna/replication_origins/s50/correlations/prioleau_origin_signal$ perl -I /usr/local/bin/Perl/ /usr/local/bin/Perl/map_wig_to_bed.pl -m -w /data/aparna/prioleau_replication_data/wigs/all_prioleau_MERGED_SAMS.bedgraph.wig -v -r prioleau_cache/ /data/aparna/prioleau_replication_data/peaks/early_replicating_regions_intersects/prioleau_early_-wa_drip_intersect.bed  
+1. Output of /data/aparna/prioleau_replication_data/peaks/early_replicating_regions_intersects/prioleau_early_-wa_drip_intersect.bed: .//all_prioleau_MERGED_SAMS_prioleau_early_-wa_drip_intersect.txt
+
+aparna@zeus:/data/aparna/replication_origins/s50/correlations/prioleau_origin_signal$ perl -I /usr/local/bin/Perl/ /usr/local/bin/Perl/map_wig_to_bed.pl -m -w /data/aparna/prioleau_replication_data/wigs/all_prioleau_MERGED_SAMS.bedgraph.wig -v -r prioleau_cache/ /data/aparna/prioleau_replication_data/peaks/early_replicating_regions_intersects/prioleau_intersect_early_nointersect_drip.bed 
+1. Output of /data/aparna/prioleau_replication_data/peaks/early_replicating_regions_intersects/prioleau_intersect_early_nointersect_drip.bed: .//all_prioleau_MERGED_SAMS_prioleau_intersect_early_nointersect_drip.txt
+
+> p_d<-read.delim("all_prioleau_MERGED_SAMS_prioleau_early_-wa_drip_intersect.txt", header=F)
+> p_nd<-read.delim("all_prioleau_MERGED_SAMS_prioleau_intersect_early_nointersect_drip.txt", header=F)
+> wilcox.test(p_d$V4, p_nd$V4, alternative="two.sided")$p.value
+[1] 7.173259e-182
+> summary(p_d$V4)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+  0.190   1.205   2.099   4.232   4.713  88.420 
+> summary(p_nd$V4)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+  0.000   0.673   1.019   1.767   1.697  53.040 
+
+DRIPc signal DRIPc + Prioleau stats
+> d_p<-read.delim("NT2_dripc_treat_afterfiting_all_dripc_-wa_intersect_early_intersect_prioleau.txt", header=F)
+> d_np<-read.delim("NT2_dripc_treat_afterfiting_all_dripc_intersect_early_nointersect_prioleau.txt", header=F)
+> wilcox.test(d_p$V4, d_np$V4, alternative="two.sided")$p.value
+[1] 0.001659403
+> summary(d_p$V4)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+  0.989   2.876   3.649   4.248   5.033  27.690 
+> summary(d_np$V4)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+  0.000   2.760   3.480   3.949   4.612  20.480
+
+# Length and bp count stats
+> wilcox.test((d_p$V3 - d_p$V2), (d_np$V3 - d_np$V2), alternative="two.sided")$p.value
+[1] 7.082308e-16
+> summary(d_p$V3-d_p$V2)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+    108     884    1568    2203    2862   17300 
+> summary(d_np$V3-d_np$V2)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+   84.0   642.2  1208.0  1652.0  2136.0 22710.0 
+> sum(d_p$V3-d_p$V2)
+[1] 1654668
+> sum(d_np$V3-d_np$V2)
+[1] 9884747
+
+DRIPc signal DRIP + Prioleau
+aparna@zeus:/data/aparna/replication_origins/s50/correlations/dripc_signal$ perl -I /usr/local/bin/Perl/ /
+usr/local/bin/Perl/map_wig_to_bed.pl -m -w /data/wearn/NT2_dripc/Combined_reps/NT2_dripc_MACS_wiggle/treat/NT2_dripc_treat_afterfiting_all.wig -v -r dripc_cache/ /data/aparna/prioleau_replication_data/peaks/early_replicating_regions_intersects/prioleau_early_-wa_drip_intersect.bed 
+1. Output of /data/aparna/prioleau_replication_data/peaks/early_replicating_regions_intersects/prioleau_early_-wa_drip_intersect.bed: .//NT2_dripc_treat_afterfiting_all_prioleau_early_-wa_drip_intersect.txt
+
+aparna@zeus:/data/aparna/replication_origins/s50/correlations/dripc_signal$ perl -I /usr/local/bin/Perl/ /usr/local/bin/Perl/map_wig_to_bed.pl -m -w /data/wearn/NT2_dripc/Combined_reps/NT2_dripc_MACS_wiggle/treat/NT2_dripc_treat_afterfiting_all.wig -v -r dripc_cache/ /data/aparna/prioleau_replication_data/peaks/early_replicating_regions_intersects/prioleau_intersect_early_nointersect_drip.bed 
+1. Output of /data/aparna/prioleau_replication_data/peaks/early_replicating_regions_intersects/prioleau_intersect_early_nointersect_drip.bed: .//NT2_dripc_treat_afterfiting_all_prioleau_intersect_early_nointersect_drip.txt
+
+aparna@zeus:/data/aparna/replication_origins/s50/correlations/dripc_signal$ perl -I /usr/local/bin/Perl/ /
+usr/local/bin/Perl/map_wig_to_bed.pl -m -w /data/wearn/NT2_dripc/Combined_reps/NT2_dripc_MACS_wiggle/treat/NT2_dripc_treat_afterfiting_all.wig -v -r dripc_cache/ /data/aparna/prioleau_replication_data/peaks/early_replicating_regions_intersects/drip_-wa_intersect_early_intersect_prioleau.bed 
+1. Output of /data/aparna/prioleau_replication_data/peaks/early_replicating_regions_intersects/drip_-wa_intersect_early_intersect_prioleau.bed: .//NT2_dripc_treat_afterfiting_all_drip_-wa_intersect_early_intersect_prioleau.txt
+
+aparna@zeus:/data/aparna/replication_origins/s50/correlations/dripc_signal$ perl -I /usr/local/bin/Perl/ /usr/local/bin/Perl/map_wig_to_bed.pl -m -w /data/wearn/NT2_dripc/Combined_reps/NT2_dripc_MACS_wiggle/treat/NT2_dripc_treat_afterfiting_all.wig -v -r dripc_cache/ /data/aparna/prioleau_replication_data/peaks/early_replicating_regions_intersects/drip_intersect_early_nointersect_prioleau.bed 
+1. Output of /data/aparna/prioleau_replication_data/peaks/early_replicating_regions_intersects/drip_intersect_early_nointersect_prioleau.bed: .//NT2_dripc_treat_afterfiting_all_drip_intersect_early_nointersect_prioleau.txt
+
+> d_p<-read.delim("NT2_dripc_treat_afterfiting_all_drip_-wa_intersect_early_intersect_prioleau.txt", header=F)
+> d_np<-read.delim("NT2_dripc_treat_afterfiting_all_drip_intersect_early_nointersect_prioleau.txt", header=F)
+> p_d<-read.delim("NT2_dripc_treat_afterfiting_all_prioleau_early_-wa_drip_intersect.txt", header=F)
+> p_nd<-read.delim("NT2_dripc_treat_afterfiting_all_prioleau_intersect_early_nointersect_drip.txt", header=F)
+> wilcox.test(d_p$V4, d_np$V4, alternative="two.sided")$p.value
+[1] 0.3071358
+> wilcox.test(p_d$V4, p_nd$V4, alternative="two.sided")$p.value
+[1] 0
+
+> summary(d_p$V4)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+  0.000   0.650   1.276   1.813   2.340  20.760 
+> summary(d_np$V4)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+  0.000   0.637   1.226   1.827   2.312  32.460 
+> summary(p_d$V4)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+  0.000   0.571   1.090   1.601   2.011  22.830 
+> summary(p_nd$V4)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+ 0.0000  0.1000  0.1790  0.3039  0.3350  4.6860 
+
+DRIP signal
+aparna@zeus:/data/aparna/replication_origins/s50/correlations/drip_signal$ perl -I /usr/local/bin/Perl/ /usr/local/bin/Perl/map_wig_to_bed.pl -m -w NT2_drip_both_treat_afterfiting_all.wig -v -r drip_cache/ /data/aparna/prioleau_replication_data/peaks/early_replicating_regions_intersects/drip_-wa_intersect_early_intersect_prioleau.bed 
+1. Output of /data/aparna/prioleau_replication_data/peaks/early_replicating_regions_intersects/drip_-wa_intersect_early_intersect_prioleau.bed: .//NT2_drip_both_treat_afterfiting_all_drip_-wa_intersect_early_intersect_prioleau.txt
+
+aparna@zeus:/data/aparna/replication_origins/s50/correlations/drip_signal$ perl -I /usr/local/bin/Perl/ /usr/local/bin/Perl/map_wig_to_bed.pl -m -w NT2_drip_both_treat_afterfiting_all.wig -v -r drip_cache/ /data/aparna/prioleau_replication_data/peaks/early_replicating_regions_intersects/drip_intersect_early_nointersect_prioleau.bed 
+1. Output of /data/aparna/prioleau_replication_data/peaks/early_replicating_regions_intersects/drip_intersect_early_nointersect_prioleau.bed: .//NT2_drip_both_treat_afterfiting_all_drip_intersect_early_nointersect_prioleau.txt
+
+aparna@zeus:/data/aparna/replication_origins/s50/correlations/drip_signal$ perl -I /usr/local/bin/Perl/ /usr/local/bin/Perl/map_wig_to_bed.pl -m -w NT2_drip_both_treat_afterfiting_all.wig -v -r drip_cache/ /data/aparna/prioleau_replication_data/peaks/early_replicating_regions_intersects/prioleau_early_-wa_dripc_intersect.bed 
+1. Output of /data/aparna/prioleau_replication_data/peaks/early_replicating_regions_intersects/prioleau_early_-wa_dripc_intersect.bed: .//NT2_drip_both_treat_afterfiting_all_prioleau_early_-wa_dripc_intersect.txt
+
+aparna@zeus:/data/aparna/replication_origins/s50/correlations/drip_signal$ perl -I /usr/local/bin/Perl/ /usr/local/bin/Perl/map_wig_to_bed.pl -m -w NT2_drip_both_treat_afterfiting_all.wig -v -r drip_cache/ /data/aparna/prioleau_replication_data/peaks/early_replicating_regions_intersects/prioleau_intersect_early_nointersect_dripc.bed 
+1. Output of /data/aparna/prioleau_replication_data/peaks/early_replicating_regions_intersects/prioleau_intersect_early_nointersect_dripc.bed: .//NT2_drip_both_treat_afterfiting_all_prioleau_intersect_early_nointersect_dripc.txt
+
+aparna@zeus:/data/aparna/replication_origins/s50/correlations/drip_signal$ perl -I /usr/local/bin/Perl/ /usr/local/bin/Perl/map_wig_to_bed.pl -m -w NT2_drip_both_treat_afterfiting_all.wig -v -r drip_cache/ /data/aparna/prioleau_replication_data/peaks/early_replicating_regions_intersects/dripc_-wa_intersect_early_intersect_prioleau.bed 
+1. Output of /data/aparna/prioleau_replication_data/peaks/early_replicating_regions_intersects/dripc_-wa_intersect_early_intersect_prioleau.bed: .//NT2_drip_both_treat_afterfiting_all_dripc_-wa_intersect_early_intersect_prioleau.txt
+
+aparna@zeus:/data/aparna/replication_origins/s50/correlations/drip_signal$ perl -I /usr/local/bin/Perl/ /usr/local/bin/Perl/map_wig_to_bed.pl -m -w NT2_drip_both_treat_afterfiting_all.wig -v -r drip_cache/ /data/aparna/prioleau_replication_data/peaks/early_replicating_regions_intersects/dripc_intersect_early_nointersect_prioleau.bed 
+1. Output of /data/aparna/prioleau_replication_data/peaks/early_replicating_regions_intersects/dripc_intersect_early_nointersect_prioleau.bed: .//NT2_drip_both_treat_afterfiting_all_dripc_intersect_early_nointersect_prioleau.txt
+
+
+
+stats
+drip
+> d_p<-read.delim("../NT2_drip_both_treat_afterfiting_all_drip_-wa_intersect_early_intersect_prioleau.txt", header=F)
+> d_np<-read.delim("../NT2_drip_both_treat_afterfiting_all_drip_intersect_early_nointersect_prioleau.txt", header=F)
+> wilcox.test(d_p$V4, d_np$V4, alternative="two.sided")$p.value
+[1] 1.645769e-15
+> summary(d_p$V4)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+  2.630   5.632   7.409   9.635  11.370  50.510 
+> summary(d_np$V4)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+  0.052   5.267   6.780   8.407   9.800  60.130 
+
+dripc
+> p_d<-read.delim("NT2_drip_both_treat_afterfiting_all_prioleau_early_-wa_dripc_intersect.txt", header=F)
+> p_nd<-read.delim("NT2_drip_both_treat_afterfiting_all_prioleau_intersect_early_nointersect_dripc.txt", header=F)
+> wilcox.test(p_d$V4, p_nd$V4, alternative="two.sided")$p.value
+[1] 1.791381e-280
+> summary(p_d$V4)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+  0.785   3.484   6.849   9.433  13.060  51.710 
+> summary(p_nd$V4)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+  0.000   0.668   1.087   1.960   2.111  41.590 
+
+> d_p<-read.delim("NT2_drip_both_treat_afterfiting_all_dripc_-wa_intersect_early_intersect_prioleau.txt", header=F)
+> d_np<-read.delim("NT2_drip_both_treat_afterfiting_all_dripc_intersect_early_nointersect_prioleau.txt", header=F)
+> wilcox.test(d_p$V4, d_np$V4, alternative="two.sided")$p.value
+[1] 2.455893e-12
+> summary(d_p$V4)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+  0.648   4.122   8.135  11.080  15.500  59.630 
+> summary(d_np$V4)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+  0.000   3.237   6.202   8.843  11.770  66.540 
+
+9.16.14
+
+S3 simulation
+> summary(sim/77164470*100)
+       V1           
+ Min.   :0.0002488  
+ 1st Qu.:0.0769810  
+ Median :0.1094143  
+ Mean   :0.1060713  
+ 3rd Qu.:0.1352941  
+ Max.   :0.2630848  
+>  #S3 dripc_overlap/originfile*100
+> summary(sim/1850839*100)
+       V1          
+ Min.   : 0.01037  
+ 1st Qu.: 3.20946  
+ Median : 4.56166  
+ Mean   : 4.42228  
+ 3rd Qu.: 5.64063  
+ Max.   :10.96843 
+
+
+# Actual
+> #S3 dripc_overlap/dripc*100
+> 8194/77164470*100
+[1] 0.01061888
+> #S3 dripc_overlap/originfile*100
+> 8194/1850839*100
+[1] 0.4427181
+
+*2.5 median shift for each SEPERATE prioleau wig
+
+9.17.14
+
+aparna@zeus:/data/aparna/trans_targets$ bedtools intersect -c -a /data/wearn/NT2_dripc/Peaks/NT2_DRIPc_merged_rep12_peaks.bed -b /data/aparna/prioleau_replication_data/peaks/early_replicating_regions_intersects/dripc_-wa_intersect_early_intersect_prioleau.bed > DRIPc_dripc-waintersect_prioleau_early_c_intersect.tmp
+
+aparna@zeus:/data/aparna/trans_targets$ bedtools intersect -c -a /data/wearn/NT2_dripc/Peaks/NT2_DRIP_merg
+e_peaks.bed -b /data/aparna/prioleau_replication_data/peaks/early_replicating_regions_intersects/drip_-wa_intersect_early_intersect_prioleau.bed > DRIP_drip-waintersect_prioleau_early_c_intersect.tmp
+
+aparna@zeus:/data/aparna/trans_targets$ bedtools intersect -c -a /data/wearn/NT2_dripc/Peaks/NT2_DRIPc_merged_rep12_peaks.bed -b /data/aparna/prioleau_replication_data/peaks/early_replicating_regions_intersects/dripc_intersect_early_nointersect_prioleau.bed > DRIPc_dripc-vnointersect_prioleau_early_c_intersect.tmp
+
+aparna@zeus:/data/aparna/trans_targets$ bedtools intersect -c -a /data/wearn/NT2_dripc/Peaks/NT2_DRIP_merge_peaks.bed -b /data/aparna/prioleau_replication_data/peaks/early_replicating_regions_intersects/drip_intersect_early_nointersect_prioleau.bed > DRIP_drip-vnointersect_prioleau_early_c_intersect.tmp
+
+aparna@zeus:/data/aparna/trans_targets$ cut -f 4 DRIP_drip-waintersect_prioleau_early_c_intersect.tmp > drip_early_prioleau_1col.tmp
+aparna@zeus:/data/aparna/trans_targets$ cut -f 4 DRIP_drip-vnointersect_prioleau_early_c_intersect.tmp > drip_early_noprioleau_1col.tmp
+aparna@zeus:/data/aparna/trans_targets$ cut -f 4 DRIPc_dripc-waintersect_prioleau_early_c_intersect.tmp > dripc_early_prioleau_1col.tmp
+aparna@zeus:/data/aparna/trans_targets$ cut -f 4 DRIPc_dripc-vnointersect_prioleau_early_c_intersect.tmp > dripc_early_noprioleau_1col.tmp
+
+aparna@zeus:/data/aparna/replication_origins/s50/stats/another_run/picard$ ./run_twointersects.pl /data/aparna/trans_targets/gaps_hg19.bed /data/aparna/trans_targets/hg19.genome /data/aparna/pri
+oleau_replication_data/picard_oris/files/intersect_cons_oris.bed /data/wearn/NT2_dripc/Peaks/NT2_DRIPc_merged_rep12_intersect_peaks.bed /data/aparna/GA/final_peak_calls/peaks/clean/NT2_DRIP_intersect_peaks.bed 1mil_picard_intersect_dripc.txt 1mil_picard_intersect_drip
+
+made clean lateregions time split files
+
+aparna@zeus:/data/aparna/prioleau_replication_data/picard_oris/files$ bedtools intersect -a intersect_cons_oris.bed -b /data/aparna/replication_origins/s50/origin_files/common_origins/common_early_origins_ENCODE.bed > peaks/picard_intersect_I_common_early.bed
+
+aparna@zeus:/data/aparna/prioleau_replication_data/picard_oris/files/peaks$ wc -l picard_intersect_I_common_early.bed                                     
+5119 picard_intersect_I_common_early.bed
+
+aparna@zeus:/data/aparna/prioleau_replication_data/picard_oris/files/peaks$ wc -l ../intersect_cons_oris.bed 
+36089 ../intersect_cons_oris.bed
+
+aparna@zeus:/data/aparna/prioleau_replication_data/picard_oris/files/peaks$ bedtools intersect -a picard_intersect_I_common_early.bed -b /data/wearn/NT2_dripc/Peaks/NT2_DRIPc_merged_rep12_intersect_peaks.bed | awk '{print $3 - $2}' | awk '{sum+=$1} END {print sum}'
+1884371
+aparna@zeus:/data/aparna/prioleau_replication_data/picard_oris/files/peaks$ awk '{print $3 - $2}' picard_intersect_I_common_early.bed| awk '{sum+=$1} END {print sum}'
+17332186
+
+> 1884371/17332186*100
+[1] 10.87209
+
+aparna@zeus:/data/aparna/prioleau_replication_data/picard_oris/files/peaks$ bedtools intersect -v -a picard_intersect_I_common_early.bed -b /data/wearn/NT2_dripc/Peaks/NT2_DRIPc_merged_rep12_intersect_peaks.bed | wc -l
+4017
+aparna@zeus:/data/aparna/prioleau_replication_data/picard_oris/files/peaks$ bedtools intersect -wa -a picard_intersect_I_common_early.bed -b /data/wearn/NT2_dripc/Peaks/NT2_DRIPc_merged_rep12_intersect_peaks.bed | awk '{print $3 - $2}' | awk '{sum+=$1} END {print sum/NR}'
+5891.69
+aparna@zeus:/data/aparna/prioleau_replication_data/picard_oris/files/peaks$ bedtools intersect -v -a picard_intersect_I_common_early.bed -b /data/wearn/NT2_dripc/Peaks/NT2_DRIPc_merged_rep12_intersect_peaks.bed | awk '{print $3 - $2}' | awk '{sum+=$1} END {print sum/NR}'
+3012.08
+aparna@zeus:/data/aparna/prioleau_replication_data/picard_oris/files/peaks$ bedtools intersect -wa -a picard_intersect_I_common_early.bed -b /data/wearn/NT2_dripc/Peaks/NT2_DRIPc_merged_rep12_intersect_peaks.bed | wc -l                                                     
+1522
+
+aparna@zeus:/data/aparna/prioleau_replication_data/picard_oris/files/peaks$ bedtools intersect -wa -a picard_intersect_I_common_early.bed -b /data/wearn/NT2_dripc/Peaks/NT2_DRIPc_merged_rep12_intersect_peaks.bed | awk '{print $3 - $2}' | awk '{sum+=$1} END {print sum}'
+8967157
+
+> 1884371/8967157*100
+[1] 21.01414
+
+9.18.14
+
+Modified shuffling script to be more general: now shuffle_genome.pl in /data/aparna/scripts/useful
+
+List of simulations to be run:
+Late G1 x DRIPc && DRIP
+Late S1 x DRIPc && DRIP
+Picard Early x DRIPc && DRIP -> within regions
+Early BrdU origins x genes
+Late BrdU origins x genes
+
+Mapping: 
+Add third boxplot to all mapped boxplot graphs that is:
+  sample peaks NOT in BrdU early mapped to file
+H3K79Me2
+Re-run
+  H4K20Me1 
+  Peak Length
+  ORC1
+  DRIP/DRIPc wig
+    x DRIP && DRIPc OVERLAP COMP Picard
+
+Full explanation of s50 method, GA_Stochhmm
+  with commented code and figures
+  
+
+Pie chart / location analysis of BrdU common early regions
+
+Super stringent shuffling for whichever overlap/nooverlap peakset is best (prioleau or picard)
+
+HeLa DRIP to HeLa origins analysis
+
+re-organize folders
+
+
+

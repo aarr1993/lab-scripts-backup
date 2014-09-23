@@ -1,0 +1,174 @@
+Scripts
+	ToDo
+		[_] Fix stupid wig2bed.pl issues 
+			: Make it print 'chr1' instead of '1' and allow an outfile to be specified instead of 'wig2bed_outfile.txt'
+		[_] s50 while(1) loop
+		[_] s50_control_calc.sh requires nograph_s50plot.R to be in . or else it does not run, fix
+Peak Calling
+	GA
+		ToDo
+			[_] Comment code
+			[_] Document methods
+			[_] Test functional rewrite
+			[_] Write CLI interface
+			[_] Remove dependence on 10 - size blocks / fixed span in make_cache.pl and eval script
+			[_] Reduce hardcoding in eval script and make_cache
+			[_] Integrate Normalization into scripts
+				: Currently Median Shift
+		Data and Stats
+			; aparna@zeus:/data/aparna/Replication_Origins/Simulations/1mil/BrdU_origins$ awk '{print $3 - $2}' /data/wearn/NT2_dripc/Peaks/NT2_DRIPc_merged_rep12_intersect_peaks.bed | awk '{sum+=$1} END {print sum}' 
+			; 77164470
+			; aparna@zeus:/data/aparna/Replication_Origins/Simulations/1mil/BrdU_origins$ awk '{print $3 - $2}' /data/wearn/NT2_dripc/Peaks/NT2_DRIPc_merged_rep12_peaks.bed | awk '{sum+=$1} END {print sum}' 
+			; 148579333
+			; aparna@zeus:/data/aparna/Replication_Origins/Simulations/1mil/BrdU_origins$ awk '{print $3 - $2}' /data/wearn/NT2_dripc/Peaks/NT2_DRIP_merge_peaks.bed | awk '{sum+=$1} END {print sum}' 
+			; 225242452
+			; aparna@zeus:/data/aparna/Replication_Origins/Simulations/1mil/BrdU_origins$ awk '{print $3 - $2}' /data/aparna/Peak_Calling/GA_StochHMM/DRIP_DRIPc_peaks_clean/NT2_DRIP_intersect_peaks.bed | awk '{sum+=$1} END {print sum}' 
+			; 105202966
+Replication Origins
+	ToDo
+		[_] 0% Document methods
+			[_] s50
+			[_] All processing scripts
+		[X] 100% Re-call common early and late origins using 3 cell lines
+			[X] s50 IMR90 (ENCODE)
+			[X] Intersect K562, HeLa, IMR90 Early and Late origins
+		[_] 0% Decide which files to use
+			[_] Common Early/Late Regions
+				: 3 cell line intersect or 4 cell line intersect?
+			[_] Specific Origins
+				: Prioleau x BrdU or Picard Constitutive or Picard
+				: Constitutive x BrdU ?
+		[_] 0% Correlations
+			[_] H4K20Me1
+			[_] Peak Length
+			[_] ORC1
+			[_] DRIP / DRIPc wig
+			[_] H3K79Me2 ???
+			[_] HeLa Correlations
+				[_] Use HeLa DRIP and correlate to:
+					[_] HeLa BrdU
+					[_] HeLa Picard
+					[_] HeLa ORC1
+		[_] 0% Simulations
+			[_] BrdU Late
+				[_] Genes
+				[_] G1 x DRIP && DRIPc
+				[_] S1 x DRIP && DRIPc
+				[X] DRIP NT2 merge
+			[_] BrdU Early
+				[_] Genes
+				[X] DRIP NT2 merge
+			[_] Extremely stringent shuffling for whichever method is finally decided on
+		[_] 0% Compare merge and intersect files for correlation
+			: Compare fold increase, early and late
+	Data and Stats
+		; aparna@zeus:/data/aparna/Replication_Origins/Simulations/1mil/BrdU_origins$ awk '{print $3 - $2}' /data/aparna/Replication_Origins/BrdU/origin_files/common_origins/common_early_origins_ENCODE.bed | awk '{sum+=$1} END {print sum}' 
+		; 232297634
+		; aparna@zeus:/data/aparna/Replication_Origins/Simulations/1mil/BrdU_origins$ awk '{print $3 - $2}' /data/aparna/Replication_Origins/BrdU/origin_files/common_origins/common_late_origins_ENCODE.bed | awk '{sum+=$1} END {print sum}'
+		; 90206435
+	Notes
+		2014-09-19
+			: Picard crashed at ~700k, but is still significant
+			: Re-running Picard simulations:
+			; aparna@zeus:/data/aparna/Replication_Origins/Simulations/1mil/picard$ shuffle_genome.pl /data/aparna/Data/gaps_hg19.bed /data/aparna/Data/hg19.genome . 300000 /data/aparna/Replication_Origins/Picard/files/intersect_cons_oris.bed /data/wearn/NT2_dripc/Peaks/NT2_DRIPc_merged_rep12_intersect_peaks.bed /data/aparna/Peak_Calling/GA_StochHMM/DRIP_DRIPc_peaks_clean/NT2_DRIP_intersect_peaks.bed 1mil_picard_intersect_dripc.txt 1mil_picard_intersect_drip.txt
+		2014-09-22
+			: Downloaded IMR90 bigWig files of UW Repli-seq BrdU data from
+			: Genome Browser. Also downloaded bigWigToWig. Need to convert to
+			: bedgraph format for s50 script.
+			: Process:
+			; ./bigWigToWig <ENCODE .bigWig> <IMR90_[].wig>
+			; wig2bed.pl <IMR90_[].wig> ; mv wig2bed_outfile.txt <IMR90_[].bedgraph>
+			; mv bigWigToWig /data/aparna/scripts/useful/
+			: Running s50 script on IMR90 (crashed because wig2bed.pl's
+			: outfile is annoying):
+			; aparna@zeus:/data/aparna/Replication_Origins/BrdU/IMR90_ENCODE$ CLEAN_s50_moremem.pl IMR90_G1.bedgraph IMR90_S1.bedgraph IMR90_S2.bedgraph IMR90_S3.bedgraph IMR90_S4.bedgraph IMR90_G2.bedgraph 
+			: Had to use awk to fix stupid wig2bed.pl '1' -> 'chr1'. Example:
+			; aparna@zeus:/data/aparna/Replication_Origins/BrdU/IMR90_ENCODE$ awk '{print "chr" $1 "\t" $2 "\t" $3 "\t" $4}' IMR90_G1.bedgraph > IMR90_G1.bed
+			: Running above command for real now.
+			: This will probably take a while ... 40mins - 1hr probably.
+			; aparna@zeus:/data/aparna/Replication_Origins/BrdU/IMR90_ENCODE$ mkdir s50_outfiles
+			; aparna@zeus:/data/aparna/Replication_Origins/BrdU/IMR90_ENCODE$ mv *s50outfile* s50_outfiles/
+			: needed to copy nograph_s50plot.R into current directory for
+			: s50_control_calc.sh to be able to find it. Fix this.
+			; aparna@zeus:/data/aparna/Replication_Origins/BrdU/IMR90_ENCODE$ s50_control_calc.sh s50_outfiles/
+			: Outfiles are early_origins_all.txt, late_origins_all.txt
+			: Intersecting to make 3 cell line common origin files. First
+			: cleaned all files.
+			; aparna@zeus:/data/aparna/Replication_Origins/BrdU/IMR90_ENCODE$ for f in early_origins_all.txt late_origins_all.txt ; do makeint.pl $f ; sort -k1,1 -k2,2n $f | bedtools intersect -v -a stdin -b /data/aparna/Data/gaps_hg19.bed | bedtools merge -d 50000 -i stdin > $f.merged ; done
+			;
+			; aparna@zeus:/data/aparna/Replication_Origins/BrdU/IMR90_ENCODE$ mv early_origins_all.txt.merged early_origins_all.txt       
+			;
+			; aparna@zeus:/data/aparna/Replication_Origins/BrdU/IMR90_ENCODE$ mv late_origins_all.txt.merged late_origins_all.txt 
+			; aparna@zeus:/data/aparna/Replication_Origins/BrdU/origin_files$ mv ../IMR90_ENCODE/early_origins_all.txt ENCODE/IMR90_early_origins_all.txt
+			; aparna@zeus:/data/aparna/Replication_Origins/BrdU/origin_files$ mv ../IMR90_ENCODE/late_origins_all.txt ENCODE/IMR90_late_origins_all.txt
+			;
+			; aparna@zeus:/data/aparna/Replication_Origins/BrdU/origin_files/common_origins$ mkdir K562_HeLa_IMR90
+			; aparna@zeus:/data/aparna/Replication_Origins/BrdU/origin_files/common_origins/K562_HeLa_IMR90$ bedtools intersect -a ../../ENCODE/IMR90_early_origins_all.txt -b ../../ENCODE/K562_early_origins_all.txt | bedtools intersect -a stdin -b ../../ENCODE/HeLa_ENCODE_early_origins_all.txt > 3cell_common_early_origins.txt
+			; aparna@zeus:/data/aparna/Replication_Origins/BrdU/origin_files/common_origins/K562_HeLa_IMR90$ bedtools intersect -a ../../ENCODE/IMR90_late_origins_all.txt -b ../../ENCODE/K562_late_origins_all.txt | bedtools intersect -a stdin -b ../../ENCODE/HeLa_ENCODE_late_origins_all.txt > 3cell_common_late_origins.txt
+			:
+			: Comparing Merge and Intersect files:
+			:
+			: DRIPc Merge and Early:
+			; aparna@zeus:/data/aparna/Replication_Origins/Simulations/1mil/BrdU_origins$ bedtools intersect -a /data/aparna/Replication_Origins/BrdU/origin_files/common_origins/common_early_origins_ENCODE.bed -b /data/wearn/NT2_dripc/Peaks/NT2_DRIPc_merged_rep12_peaks.bed | awk '{print $3 - $2}' | awk '{sum+=$1} END {print sum}'
+			; 21202919
+			: Simulation
+			;     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
+			;     15760000 19130000 19700000 19710000 20280000 23530000 
+			: DRIPc early is not significant to 1E-6 
+			; length(dripc1mil[dripc1mil >= 21202919])
+			; [1] 40689
+			:
+			: DRIPc Merge and Late:
+			; aparna@zeus:/data/aparna/Replication_Origins/Simulations/1mil/BrdU_origins$ bedtools intersect -a /data/aparna/Replication_Origins/BrdU/origin_files/common_origins/common_late_origins_ENCODE.bed -b /data/wearn/NT2_dripc/Peaks/NT2_DRIPc_merged_rep12_peaks.bed | awk '{print $3 - $2}' | awk '{sum+=$1} END {print sum}'
+			; 380739
+			: Simulation
+			;    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+			;    4459000 6202000 6557000 6560000 6912000 9142000 
+			: DRIPc late is significant to 1E-6
+			:
+			: DRIPc Intersect and Early:
+			; aparna@zeus:/data/aparna/Replication_Origins/Simulations/1mil/BrdU_origins$ bedtools intersect -a /data/aparna/Replication_Origins/BrdU/origin_files/common_origins/common_early_origins_ENCODE.bed -b /data/wearn/NT2_dripc/Peaks/NT2_DRIPc_merged_rep12_intersect_peaks.bed | awk '{print $3 - $2}' | awk '{sum+=$1} END {print sum}'
+			; 11483112
+			: Simulation
+			;    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+			;    5393000 6664000 6905000 6910000 7152000 8668000 
+			: DRIPc early is significant to 1E-6
+			:
+			: DRIPc Intersect and Late:
+			; aparna@zeus:/data/aparna/Replication_Origins/Simulations/1mil/BrdU_origins$ bedtools intersect -a /data/aparna/Replication_Origins/BrdU/origin_files/common_origins/common_late_origins_ENCODE.bed -b /data/wearn/NT2_dripc/Peaks/NT2_DRIPc_merged_rep12_intersect_peaks.bed | awk '{print $3 - $2}' | awk '{sum+=$1} END {print sum}'
+			; 128759
+			: Simulation
+			;    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+			;    1401000 2026000 2168000 2171000 2311000 3051000 
+			: DRIPc late is significant to 1E-6
+			:
+			: DRIP Merge and Early:
+			; aparna@zeus:/data/aparna/Replication_Origins/Simulations/1mil/BrdU_origins$ bedtools intersect -a /data/aparna/Replication_Origins/BrdU/origin_files/common_origins/common_early_origins_ENCODE.bed -b /data/wearn/NT2_dripc/Peaks/NT2_DRIP_merge_peaks.bed | awk '{print $3 - $2}' | awk '{sum+=$1} END {print sum}'
+			; 50690032
+			:
+			: DRIP Merge and Late:
+			; aparna@zeus:/data/aparna/Replication_Origins/Simulations/1mil/BrdU_origins$ bedtools intersect -a /data/aparna/Replication_Origins/BrdU/origin_files/common_origins/common_late_origins_ENCODE.bed -b /data/wearn/NT2_dripc/Peaks/NT2_DRIP_merge_peaks.bed | awk '{print $3 - $2}' | awk '{sum+=$1} END {print sum}'
+			; 96634
+			:
+			: DRIP Intersect and Early:
+			; aparna@zeus:/data/aparna/Replication_Origins/Simulations/1mil/BrdU_origins$ bedtools intersect -a /data/aparna/Replication_Origins/BrdU/origin_files/common_origins/common_early_origins_ENCODE.bed -b /data/aparna/Peak_Calling/GA_StochHMM/DRIP_DRIPc_peaks_clean/NT2_DRIP_intersect_peaks.bed | awk '{print $3 - $2}' | awk '{sum+=$1} END {print sum}'
+			; 26325118
+			:
+			: DRIP Intersect and Late:
+			; aparna@zeus:/data/aparna/Replication_Origins/Simulations/1mil/BrdU_origins$ bedtools intersect -a /data/aparna/Replication_Origins/BrdU/origin_files/common_origins/common_late_origins_ENCODE.bed -b /data/aparna/Peak_Calling/GA_StochHMM/DRIP_DRIPc_peaks_clean/NT2_DRIP_intersect_peaks.bed | awk '{print $3 - $2}' | awk '{sum+=$1} END {print sum}'
+			; 25894
+			:
+			: Starting BrdU Early and DRIP Merge simulation
+			; aparna@zeus:/data/aparna/Replication_Origins/Simulations/1mil/BrdU_origins$ shuffle_genome.pl /data/aparna/Data/gaps_hg19.bed /data/aparna/Data/hg19.genome GA_drip_early 1000000 /data/aparna/Replication_Origins/BrdU/origin_files/common_origins/common_early_origins_ENCODE.bed /data/wearn/NT2_dripc/Peaks/NT2_DRIP_merge_peaks.bed GA_drip_early/1mil_simulation_DRIP_Merge_early.txt
+			: 
+			: Began process of improving GA, outlined wrapper script
+		2014-09-23
+			: DRIP merge early simulation done. Will put stats in previous
+			: day's notes so all info is together.
+			: Starting BrdU Late and DRIP merge simulation
+			; aparna@zeus:/data/aparna/Replication_Origins/Simulations/1mil/BrdU_origins$ shuffle_genome.pl /data/aparna/Data/gaps_hg19.bed /data/aparna/Data/hg19.genome GA_drip_late 1000000 /data/aparna/Replication_Origins/BrdU/origin_files/common_origins/common_late_origins_ENCODE.bed /data/wearn/NT2_dripc/Peaks/NT2_DRIP_merge_peaks.bed GA_drip_late/1mil_simulation_DRIP_Merge_late.txt
+			: DRIP Merge Late simulation is done
+			: Working a lot on the GA wrapper script / module
+			: entire wrapper and .pm is written except for check sanity
+			: functions / user validation
+			: COMPLETELY untested

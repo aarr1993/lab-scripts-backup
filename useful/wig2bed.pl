@@ -2,11 +2,11 @@
 use warnings;
 use strict;
 
-my ($wig) = @ARGV;
-die "usage: $0 <wig file>\n" unless @ARGV == 1;
+my ($wig, $outfile) = @ARGV;
+die "usage: $0 <wig file> <outfile>\n" unless @ARGV == 1;
 
 open (IN, "<", $wig) or die "Could not open $wig\n";
-open (OUT, ">", "wig2bed_outfile.txt") or die "Could not open outfile\n";
+open (OUT, ">", $outfile) or die "Could not open $outfile\n";
 
 my $chrom = "INIT";
 my $span = -1;

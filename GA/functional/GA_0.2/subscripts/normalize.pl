@@ -19,7 +19,7 @@ while (<IN>) {
 
   if ($line =~ /^\d+/) {
     my ($pos, $val) = split(/\t/, $line);
-    push (@values, $val);
+    push (@values, int($val));
   }
 }
 
@@ -32,7 +32,18 @@ my $third = $quart * 3;
 my @sort = sort {$a<=>$b} @values; # FIXME check syntax
 @values = (); # delete values array
 
-my @small = @sort[$third..(@sort - 1)];
+#my @small = @sort[$third..(@sort - 1)];
+#@sort = (); # delete sort array
+my $third_val = $sort[$third];
+
+my $iter = $third;
+
+while ($sort[$iter] <= $sort[$third]) { # FIXME there has to be a better way of doing this
+  $iter++;
+  next;
+} 
+
+my @small = @sort[$iter..(@sort - 1)];
 @sort = (); # delete sort array
 
 my $third_median = int(@small / 2); 
@@ -53,7 +64,7 @@ while(<IN>) {
   else {
     my ($pos, $val) = split(/\t/, $line);
     $val *= $shift;
-    print OUT "$pos\t$val";
+    print OUT "$pos\t$val\n";
   }
 }
 

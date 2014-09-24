@@ -16,7 +16,7 @@ if ($end < $start) {
 open (IN, "<", $wigfile) or die "Could not open $wigfile\n";
 open (OUT, ">", $outfile) or die "Could not open $outfile\n";
 
-my $stepline = ""; 
+#my $stepline = ""; 
 my $chr = "INIT";
 my $span = 0;
 
@@ -28,13 +28,16 @@ while (<IN>) {
     next;
   }
   elsif ($line =~ /Step/) {
-    $stepline = $line;
+#    $stepline = $line;
     ($chr, $span) = $line =~ /Step chrom=(.+)\s+span=(\d+)/ ; #FIXME check this regex, check fixedStep format
+    if ($chr eq $chrom) {
+      print OUT "$line\n";
+    }
   } 
   elsif ($line =~ /^\d+/) {
     my ($pos) = $line =~ /(\d+)\t\d+/ ; #FIXME check this regex
-    if ($chr == $chrom && $pos >= $start && $pos + $span <= $end) {
-      print OUT "$stepline\n$line\n"; 
+    if ($chr eq $chrom && $pos >= $start && $pos + $span <= $end) {
+      print OUT "$line\n"; 
     } 
   }
 }

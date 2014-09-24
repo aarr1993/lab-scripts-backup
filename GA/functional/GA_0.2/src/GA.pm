@@ -39,15 +39,26 @@ sub normalize {
   my $check = <>;
   chomp $check;
 
-  return if ($check =~ /y/i) ; # FIXME is this valid? just want to exit function
+  return if ($check =~ /y/i) ;
   # trusting user on file format
 
   # linear shift based on > 3rd quartile median.
-  `../normalize.pl $wigfiles{chr_wig} ../wigs/chr_wig_shifted.wig`;
+  `../subscripts/normalize.pl $wigfiles{chr_wig} ../wigs/chr_wig_shifted.wig`;
   $wigfiles{chr_wig} = "../wigs/chr_wig_shifted.wig";
 }
 
 sub customfa {
+  print ".customfa files and small wigs already created? (y/n): ";
+  my $in = <>;
+  chomp $in;
+
+  if ($in =~ /y/i) {
+    print "Using default filenames: ../wigs/run_region.wig and ../wigs/test_region.wig\n";
+    $wigfiles{run_wig} = '../wigs/run_region.wig';
+    $wigfiles{test_wig} = '../wigs/test_region.wig';
+    return;
+  } 
+
   print "Enter chromosome used for this processs (ex. chr8): ";
   my $in_chr = <>;
   chomp $in_chr;
@@ -116,13 +127,16 @@ sub emissions {
   my @beds;
 
   my $check = "n";
-  
+  my $dir = '';
   do {
     print "Bedfiles for initial hmm already created? (y/n): ";
     $check = <>;
     chomp $check;
   
     if ($check =~ /y/i) {
+      print "Enter directory path to beds: ";
+      $dir = <>;
+      chomp $dir;
       print "Enter space-seperated filenames: ";
       my $input = <>;
       chomp $input;
@@ -143,7 +157,7 @@ sub emissions {
   chomp $emm;
 
   for (my $i = 0; $i < @beds; $i++) {
-    `fastaFromBed -fi ../fasta/chr.customfa -bed $beds[$i] -fo ../fasta/$beds[$i].fa`;
+    `fastaFromBed -fi ../fasta/chr.customfa -bed $dir/$beds[$i] -fo ../fasta/$beds[$i].fa`;
     `../subscripts/HMM_Counter.pl -i ../fasta/$beds[$i].fa -r $order -w $emm -o ../emm/$beds[$i].count`;
   }
 
@@ -156,7 +170,7 @@ sub emissions {
 }
 
 sub set_model {
-  if ($initial_hmm ne "") {
+  if ($initial_hmm) {
     print "initial HMM file is already set to $initial_hmm. Go on to next step\n";
   }
   else {
@@ -168,7 +182,7 @@ sub set_model {
 }
 
 sub initialize {
-  print "Initializing cache for evaluation script with $wigfiles{test_region}.\n";
+  print "Initializing cache for evaluation script with $wigfiles{test_wig}.\n";
   
   my $blocks = `../subscripts/make_cache.pl ../cache ../wigs/test_region.wig`;
   open (TMP, ">", "../tmp/sig_unsig_blocks.txt");
@@ -200,7 +214,7 @@ sub params {
   my $outdir = <>;
   chomp $outdir;
 
-  my $cmd = "<GA script> ../fasta/run_region.customfa $initial_hmm $template_hmm $popsize $gens $threads $outdir";
+  my $cmd = "./functionalGA.pl ../fasta/run_region.customfa $initial_hmm $template_hmm $popsize $gens $threads $outdir";
 
   print "Command is\n" . $cmd . "\n";
   print "Run GA? (y/n): ";
@@ -214,4 +228,3 @@ sub params {
     `$cmd`;
   }
 }
- 

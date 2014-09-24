@@ -12,12 +12,18 @@ use Cache::FileCache;
   # to remind what all the names are
 
 my ($cache_root, $wigfile) = @ARGV;
-die "usage: $0 <cache> <wig>\n";
+die "usage: $0 <cache> <wig>\n" unless @ARGV;
 
 my $name = $wigfile =~ /\/{0,1}(.+)$/; # FIXME check regex
 
+my $abs_path = `cd $cache_root ; pwd`; 
+chomp $abs_path;
+$abs_path .= "/"; # because relative path crashes
+
+#print STDERR "abs_path is [$abs_path]\n";
+
 my $cache = new Cache::FileCache();
-$cache -> set_cache_root($cache_root);
+$cache -> set_cache_root($abs_path);
 
 my $sig_blocks;
 my $unsig_blocks;

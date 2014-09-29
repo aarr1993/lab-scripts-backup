@@ -41,18 +41,6 @@ sub convert {
   return("M") if $number <= 40;
   return("H") if $number <= 70;
   return("S") if $number > 70;
-#	return("O") if $number > 10 and $number < 25;
-
-#	return("M") if $number >= 25 ;
-
-#	return("O") if $number > 10 and $number < 25;
-#	return("M") if $number > 10 and $number < 40;
-#  return("H") if $number >= 40;
-
-#	return("H") if $number > 40 and $number < 70;
-#	return("S") if $number >= 70 ;
-#	return("H") if $number >= 15 and $number < 30;
-#	return("V") if $number >= 30;
 }
 
 sub main {
@@ -62,7 +50,7 @@ sub main {
 		die "Input cannot be .customfa!\n";
 	}
 #	my ($folder, $name) = mitochy::getFilename($input, "folder");
-  my ($name) = $input =~ /\/{0,1}(.+)$/ ; # to get filename
+  my ($name) = $input =~ /\/{0,1}(.+)$/ ; # to get filename without mitochy.pm
 	my $output = defined($opt_o) ? $opt_o : "$name.customfa";
 	
 	# Open input wig file and process

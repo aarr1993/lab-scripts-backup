@@ -12,7 +12,6 @@ my $CROSSOVER_RATE  = 0.05;
 my $PARENT_PERCENT  = 0.2;
 my $ORDER           = 3;
 my $NUM_EMISSIONS   = 6;
-my $THRESHOLD       = 0.9;
 my $THREADS         = 0;
 my $EVAL_SCRIPT     = "../subscripts/eval_script.pl";
 my $POP_SIZE        = 0;
@@ -197,7 +196,7 @@ sub run_stochhmm {
   
   for (my $n = 0; $n < @hmms; $n++) {
     push(@comm, "stochhmm -model $hmms[$n] -seq $seq -posterior -threshold 0.9 -gff > $dir$n.report");
-    push(@evalcomm, "$EVAL_SCRIPT $dir$n.report $THRESHOLD"); #FIXME remove threshold since eval script doesn't use it
+    push(@evalcomm, "$EVAL_SCRIPT $dir$n.report"); 
   }
 
   print "Running stochhmm\n";

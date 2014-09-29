@@ -1,0 +1,23 @@
+GA-StochHMM Documentation
+	Theory
+		Normalization
+		Hidden Markov Model
+		Genetic Algorithm
+	Pipeline
+		Full Run GA-StochHMM
+		Preprocessing Partially/Fully Completed
+		Without Wrapper
+		Peak Calling with a Model
+	Options
+	Defaults
+	Commented Code
+	Known Bugs / Issues
+	Examples and Tests
+		Full Run
+		Partial Preprocessing Completed
+		Without Wrapper
+		Defaults
+		Custom
+		StochHMM Run with Model
+
+	

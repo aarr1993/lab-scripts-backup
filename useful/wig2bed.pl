@@ -21,7 +21,7 @@ while(<IN>) {
   }
 
   if ($line =~ /^variableStep/) {
-    ($chrom, $span) = $line =~ /^variableStep chrom=chr(.+) span=(.+)$/;
+    ($chrom, $span) = $line =~ /^variableStep chrom=(.+) span=(.+)$/;
   }
   else {
     my ($pos, $val) = split (/\t/, $line);

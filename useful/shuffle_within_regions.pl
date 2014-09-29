@@ -33,7 +33,10 @@ sub read_in {
     my @line_elements = split(/\s+/, $line);
   
 #this may wrong
-    push(@{$hash{$line_elements[0]}}, ($line_elements[1], $line_elements[2]));
+#    print "\ndebug: read_in(): line_elements 1 and 2 : [$line_elements[1]] [$line_elements[2]]\n" ; 
+    push(@{$hash{$line_elements[0]}}, [$line_elements[1], $line_elements[2]]);
+
+#    die "\ndebug: read_in(): hash{line_elements[0]}[0][0]: [$hash{$line_elements[0]}[0][0]]";
   }
 
   close IN;
@@ -48,26 +51,40 @@ sub shuffle {
   my $intersect = $_[3];
   my $outfile = $_[4];
 
-  print "\ndebug: shuffle(): print 1\n";
+#  print "\ndebug: shuffle(): print 1\n"; #prints
 
   for (my $i = 0; $i < $num_runs; $i++) {
     my %new_pos;
     foreach my $chr (keys %shuffle) {
       my $s = 0;
 
-      print "\ndebug: shuffle(): print 2\n";
-      print "\ndebug: shuffle(): shuffle{chr}{s} : [$shuffle{$chr}[$s]]\n";
+#      print "\ndebug: shuffle(): print 2\n"; #prints
+#      print "\ndebug: shuffle(): shuffle{chr}{s} : [$shuffle{$chr}[$s][1]]\n"; 
 
-      my $index = binary_search($shuffle{$chr}[$s],\@{$regions{$chr}});
+#      print "\ndebug: shuffle(): scalar(shuffle{chr}) [" . @{$shuffle{$chr}} . "]\n"; 
+#      my $index = binary_search($shuffle{$chr}[$s],\@{$regions{$chr}});
+
+      my $size = scalar @{$shuffle{$chr}} ;
+      my $index = 0;
+      while($shuffle{$chr}[$s][0] > $regions{$chr}[$index][1]) {
+        $index++;
+      } 
+
       for (my $j = $index; $j < @{$regions{$chr}}; $j++) {
-        while ($shuffle{$chr}[$s][0] < $regions{$chr}[$j][1]) {
+        while ($s < $size && $shuffle{$chr}[$s][0] < $regions{$chr}[$j][1]) {
           #shuffle position, store
+          #s 374 is where the fails start
+
+#          print "\ndebug: shuffle(): while(): s [$s] shuffle{chr}[s][1] [$shuffle{$chr}[$s][1]] shuffle{chr}[s][0] [$shuffle{$chr}[$s][0]\n" ; 
+
+#          if ($s == 375) {die "s is [$s] and size of array is [" . @{$shuffle{$chr}} ."]\n"  ;};
+
           my $shuffle_len = $shuffle{$chr}[$s][1] - $shuffle{$chr}[$s][0] ;
           my $adj_region_len = $regions{$chr}[$j][1] - $regions{$chr}[$j][0] - $shuffle_len ;
           my $start = int(rand($adj_region_len)) + $regions{$chr}[$j][0] ;  
           my $end = $start + $shuffle_len ;
 
-          push(@{$new_pos{$chr}}, ($start, $end)) ;
+          push(@{$new_pos{$chr}}, [$start, $end]) ;
           $s++ ;
         } # while        
       } # for
@@ -79,19 +96,23 @@ sub shuffle {
     # sort chrs
     foreach my $chrom (sort keys %new_pos) {
       for (my $n = 0; $n < @{$new_pos{$chrom}}; $n++) {
-        print TMP "$chrom\t$new_pos{$chrom}[0]\t$new_pos{$chrom}[1]\n"; # does it need normal bed format?
+        print TMP "$chrom\t$new_pos{$chrom}[$n][0]\t$new_pos{$chrom}[$n][1]\n"; # does it need normal bed format?
       }
     }
     close TMP;
     # intersect and print
+    # temp solution: merging. FIXME find a better way!
+    `bedtools merge -n -i $i\.tmp > temp ; mv temp $i\.tmp` ;
     `bedtools intersect -a $i\.tmp -b $intersect | awk '{print \$3 - \$2}' | awk '{sum+=\$1} END {print sum}' >> $outfile` ;
-     `rm $i\.tmp`;
+    `rm $i\.tmp`;
   } # for
 }
 
 sub binary_search {
   my $num = $_[0] ;
   my @indexes = @{$_[1]} ;
+
+
 
   my $first = 0 ;
   my $last = @indexes - 1 ;

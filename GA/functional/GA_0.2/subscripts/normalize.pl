@@ -32,15 +32,12 @@ my $third = $quart * 3;
 my @sort = sort {$a<=>$b} @values; # FIXME check syntax
 @values = (); # delete values array
 
-#my @small = @sort[$third..(@sort - 1)];
-#@sort = (); # delete sort array
 my $third_val = $sort[$third];
 
 my $iter = $third;
 
 while ($sort[$iter] <= $sort[$third]) { # FIXME there has to be a better way of doing this
-  $iter++;
-  next;
+  $iter++;                              # $iter++ until ($sort[$iter] > $sort[$third]) # ? check
 } 
 
 my @small = @sort[$iter..(@sort - 1)];

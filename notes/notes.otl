@@ -1,6 +1,6 @@
 Scripts
 	ToDo
-		[_] Fix stupid wig2bed.pl issues 
+		[X] Fix stupid wig2bed.pl issues 
 			: Make it print 'chr1' instead of '1' and allow an outfile to be specified instead of 'wig2bed_outfile.txt'
 		[_] s50 while(1) loop
 		[_] s50_control_calc.sh requires nograph_s50plot.R to be in . or else it does not run, fix
@@ -10,10 +10,10 @@ Peak Calling
 			[_] Comment code
 			[_] Document methods
 			[_] Test functional rewrite
-			[_] Write CLI interface
-			[_] Remove dependence on 10 - size blocks / fixed span in make_cache.pl and eval script
-			[_] Reduce hardcoding in eval script and make_cache
-			[_] Integrate Normalization into scripts
+			[X] Write CLI interface
+			[X] Remove dependence on 10 - size blocks / fixed span in make_cache.pl and eval script
+			[X] Reduce hardcoding in eval script and make_cache
+			[X] Integrate Normalization into scripts
 				: Currently Median Shift
 		Data and Stats
 			; aparna@zeus:/data/aparna/Replication_Origins/Simulations/1mil/BrdU_origins$ awk '{print $3 - $2}' /data/wearn/NT2_dripc/Peaks/NT2_DRIPc_merged_rep12_intersect_peaks.bed | awk '{sum+=$1} END {print sum}' 
@@ -32,14 +32,16 @@ Replication Origins
 		[X] 100% Re-call common early and late origins using 3 cell lines
 			[X] s50 IMR90 (ENCODE)
 			[X] Intersect K562, HeLa, IMR90 Early and Late origins
-		[_] 0% Decide which files to use
-			[_] Common Early/Late Regions
+		[X] 100% Decide which files to use
+			[X] Common Early/Late Regions
 				: 3 cell line intersect or 4 cell line intersect?
-			[_] Specific Origins
+				: 3 cell line decided
+			[X] Specific Origins
 				: Prioleau x BrdU or Picard Constitutive or Picard
 				: Constitutive x BrdU ?
-		[_] 0% Correlations
-			[_] H4K20Me1
+				: Probably Picard Constitutive x BrdU (3cell)
+		[_] 16% Correlations
+			[X] H4K20Me1
 			[_] Peak Length
 			[_] ORC1
 			[_] DRIP / DRIPc wig
@@ -49,7 +51,7 @@ Replication Origins
 					[_] HeLa BrdU
 					[_] HeLa Picard
 					[_] HeLa ORC1
-		[_] 0% Simulations
+		[_] 42% Simulations
 			[_] BrdU Late
 				[_] Genes
 				[_] G1 x DRIP && DRIPc
@@ -58,14 +60,25 @@ Replication Origins
 			[_] BrdU Early
 				[_] Genes
 				[X] DRIP NT2 merge
+			[X] 3 cell line intersect, early, late, DRIP, DRIPc
+			[X] Picard constitutive DRIP/DRIPc intersect
+			[X] Within early 3cell BrdU regions, shuffle picard_early intersect, overlap with DRIP(c) intersect
+			[_] Genome Picard_early intersect x DRIP(c) intersect
 			[_] Extremely stringent shuffling for whichever method is finally decided on
-		[_] 0% Compare merge and intersect files for correlation
+		[X] 100% Compare merge and intersect files for correlation
 			: Compare fold increase, early and late
 	Data and Stats
 		; aparna@zeus:/data/aparna/Replication_Origins/Simulations/1mil/BrdU_origins$ awk '{print $3 - $2}' /data/aparna/Replication_Origins/BrdU/origin_files/common_origins/common_early_origins_ENCODE.bed | awk '{sum+=$1} END {print sum}' 
 		; 232297634
 		; aparna@zeus:/data/aparna/Replication_Origins/Simulations/1mil/BrdU_origins$ awk '{print $3 - $2}' /data/aparna/Replication_Origins/BrdU/origin_files/common_origins/common_late_origins_ENCODE.bed | awk '{sum+=$1} END {print sum}'
 		; 90206435
+		; aparna@zeus:/data/aparna/Replication_Origins/BrdU/origin_files/common_origins/K562_HeLa_IMR90$ for f in * ; do echo $f; awk '{print $3 - $2}' $f | awk '{sum+=$1} END {print sum}'; done 
+		; 3cell_common_early_origins.txt
+		; 297008250
+		; 3cell_common_late_origins.txt
+		; 161723633
+		; aparna@zeus:/data/aparna/Replication_Origins/Picard/files$ awk '{print $3 - $2}' intersect_cons_oris.bed | awk '{sum+=$1} END {print sum}'
+		; 105807100
 	Notes
 		2014-09-19
 			: Picard crashed at ~700k, but is still significant
@@ -145,18 +158,34 @@ Replication Origins
 			: DRIP Merge and Early:
 			; aparna@zeus:/data/aparna/Replication_Origins/Simulations/1mil/BrdU_origins$ bedtools intersect -a /data/aparna/Replication_Origins/BrdU/origin_files/common_origins/common_early_origins_ENCODE.bed -b /data/wearn/NT2_dripc/Peaks/NT2_DRIP_merge_peaks.bed | awk '{print $3 - $2}' | awk '{sum+=$1} END {print sum}'
 			; 50690032
+			: Simulation
+			;     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
+			;     16880000 21580000 22490000 22510000 23410000 28610000
+			: DRIP early is significant to 1E-6
 			:
 			: DRIP Merge and Late:
 			; aparna@zeus:/data/aparna/Replication_Origins/Simulations/1mil/BrdU_origins$ bedtools intersect -a /data/aparna/Replication_Origins/BrdU/origin_files/common_origins/common_late_origins_ENCODE.bed -b /data/wearn/NT2_dripc/Peaks/NT2_DRIP_merge_peaks.bed | awk '{print $3 - $2}' | awk '{sum+=$1} END {print sum}'
 			; 96634
+			: Simulation
+			;    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+			;    3219000 5080000 5545000 5570000 6027000 8792000 
+			: DRIP merge late is significant to 1E-6
 			:
 			: DRIP Intersect and Early:
 			; aparna@zeus:/data/aparna/Replication_Origins/Simulations/1mil/BrdU_origins$ bedtools intersect -a /data/aparna/Replication_Origins/BrdU/origin_files/common_origins/common_early_origins_ENCODE.bed -b /data/aparna/Peak_Calling/GA_StochHMM/DRIP_DRIPc_peaks_clean/NT2_DRIP_intersect_peaks.bed | awk '{print $3 - $2}' | awk '{sum+=$1} END {print sum}'
 			; 26325118
+			: Simulation
+			;     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
+			;     7697000 10480000 11040000 11060000 11610000 14850000
+			: DRIP intersect early is significant to 1E-6
 			:
 			: DRIP Intersect and Late:
 			; aparna@zeus:/data/aparna/Replication_Origins/Simulations/1mil/BrdU_origins$ bedtools intersect -a /data/aparna/Replication_Origins/BrdU/origin_files/common_origins/common_late_origins_ENCODE.bed -b /data/aparna/Peak_Calling/GA_StochHMM/DRIP_DRIPc_peaks_clean/NT2_DRIP_intersect_peaks.bed | awk '{print $3 - $2}' | awk '{sum+=$1} END {print sum}'
 			; 25894
+			: Simulation
+			;    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+			;    1094000 2096000 2357000 2380000 2642000 4275000 
+			:DRIP intersect late is significant to 1E-6
 			:
 			: Starting BrdU Early and DRIP Merge simulation
 			; aparna@zeus:/data/aparna/Replication_Origins/Simulations/1mil/BrdU_origins$ shuffle_genome.pl /data/aparna/Data/gaps_hg19.bed /data/aparna/Data/hg19.genome GA_drip_early 1000000 /data/aparna/Replication_Origins/BrdU/origin_files/common_origins/common_early_origins_ENCODE.bed /data/wearn/NT2_dripc/Peaks/NT2_DRIP_merge_peaks.bed GA_drip_early/1mil_simulation_DRIP_Merge_early.txt
@@ -172,3 +201,166 @@ Replication Origins
 			: entire wrapper and .pm is written except for check sanity
 			: functions / user validation
 			: COMPLETELY untested
+		2014-09-24
+			: Need to test wrapper script
+			: Fixed normalize script so it correctly reflects process used in
+			: R
+			: Wrapper script somewhat tested and debugged. Appears to work
+			: fine.
+			: Starting 3 cell early simulation intersect with DRIP and DRIPc
+			: (intersect files)
+			; aparna@zeus:/data/aparna/Replication_Origins/Simulations/1mil/BrdU_origins/3cells$ shuffle_genome.pl /data/aparna/Data/gaps_hg19.bed /data/aparna/Data/hg19.genome . 1000000 /data/aparna/Replication_Origins/BrdU/origin_files/common_origins/K562_HeLa_IMR90/3cell_common_early_origins.txt /data/wearn/NT2_dripc/Peaks/NT2_DRIPc_merged_rep12_intersect_peaks.bed /data/aparna/Peak_Calling/GA_StochHMM/DRIP_DRIPc_peaks_clean/NT2_DRIP_intersect_peaks.bed DRIPc_early/1mil_3cell_early_DRIPc.txt DRIP_early/1mil_3cell_early_DRIP.txt
+			: Picard constutive x DRIP intersect:
+			; aparna@zeus:/data/aparna/Replication_Origins/Picard/files$ awk '{print $1 "\t" $2 "\t" $3}' intersect_cons_oris.bed | bedtools intersect -a stdin -b /data/aparna/Peak_Calling/GA_StochHMM/DRIP_DRIPc_peaks_clean/NT2_DRIP_intersect_peaks.bed | awk '{print $3 - $2}' | awk '{sum+=$1} END {print sum}'
+			; 24321359
+			: ~23% of Picard constutive overlaps with DRIP
+			: ~23% of DRIP overlaps with Picard constitutive
+			: Picard constitutive x DRIP simulation:
+			;    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+			;    4597000 5032000 5115000 5115000 5198000 5679000
+			: Picard: Min: ~4.3% Mean: ~4.8% Max: ~5.3%
+			: DRIP: Min: ~4.36% Mean: ~4.86% Max: ~5.4%
+			:
+			: Picard constitutive x DRIPc intersect
+			; aparna@zeus:/data/aparna/Replication_Origins/Picard/files$ awk '{print $1 "\t" $2 "\t" $3}' intersect_cons_oris.bed | bedtools intersect -a stdin -b /data/wearn/NT2_dripc/Peaks/NT2_DRIPc_merged_rep12_intersect_peaks.bed | awk '{print $3 - $2}' | awk '{sum+=$1} END {print sum}'
+			; 8370737
+			: ~8% of Picard constitutive overlaps with DRIPc
+			: ~11% of DRIPc overlaps with Picard constutive
+			: Picard constutive x DRIPc simulation:
+			;    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+			;    2764000 3094000 3153000 3154000 3213000 3563000 
+			: Picard: Min: ~2.6% Mean: ~3% Max: ~3.4%
+			: DRIPc: Min: ~3.6% Mean: ~4.1% Max: ~4.6%
+			:
+			: Made Picard intersect Intersect 3cell BrdU early file:
+			; aparna@zeus:/data/aparna/Replication_Origins/Picard/files$ bedtools intersect -a intersect_cons_oris.bed -b /data/aparna/Replication_Origins/BrdU/origin_files/common_origins/K562_HeLa_IMR90/3cell_common_early_origins.txt > peaks/picard_intersect_I_3cell_early.bed
+			: Picard x 3cell intersect DRIPc int
+			; aparna@zeus:/data/aparna/Replication_Origins/Picard/files$ bedtools intersect -a peaks/picard_intersect_I_3cell_early.bed -b /data/wearn/NT2_dripc/Peaks/NT2_DRIPc_merged_rep12_intersect_peaks.bed | awk '{print $3 - $2}' | awk '{sum+=$1} END {print sum}'
+			; 2265147
+			: ~3% DRIPc int overlaps with Picard constitutive x 3cell early
+			: Picard x 3cell intersect DRIP int
+			; aparna@zeus:/data/aparna/Replication_Origins/Picard/files$ bedtools intersect -a peaks/picard_intersect_I_3cell_early.bed -b /data/aparna/Peak_Calling/GA_StochHMM/DRIP_DRIPc_peaks_clean/NT2_DRIP_intersect_peaks.bed | awk '{print $3 - $2}' | awk '{sum+=$1} END {print sum}'
+			; 7488495
+			: ~7% DRIP int overlaps with Picard constitutive x 3cell early
+			: Simulation within regions:
+			; aparna@zeus:/data/aparna/Replication_Origins/Simulations/within_regions/picard_early_3cell$ shuffle_within_regions.pl /data/aparna/Replication_Origins/BrdU/origin_files/common_origins/K562_HeLa_IMR90/3cell_common_early_origins.txt /data/aparna/Replication_Origins/Picard/files/peaks/picard_intersect_I_3cell_early.bed 10000 /data/aparna/Peak_Calling/GA_StochHMM/DRIP_DRIPc_peaks_clean/NT2_DRIP_intersect_peaks.bed picard_int_early_3cell_DRIP_int_10k_shuffle_within.txt
+			:	TODO cannot run now, run later -> Done (simulation within
+			:	regions results in 2014-9-26)
+			: Picard x 3cell total bp:
+			; aparna@zeus:/data/aparna/Replication_Origins/Picard/files$ awk '{print $3 - $2}' peaks/picard_intersect_I_3cell_early.bed| awk '{sum+=$1} END {print sum}'
+			; 21642736
+			: ~10.5% of Picard constitutive x 3cell early overlaps with DRIPc int
+			: ~34.6% Picard constitutive x 3cell early overlaps with DRIP int
+		2014-09-25
+			: Starting 3 cell late shuffle
+			; aparna@zeus:/data/aparna/Replication_Origins/Simulations/1mil/BrdU_origins/3cells$ shuffle_genome.pl /data/aparna/Data/gaps_hg19.bed /data/aparna/Data/hg19.genome . 1000000 /data/aparna/Replication_Origins/BrdU/origin_files/common_origins/K562_HeLa_IMR90/3cell_common_late_origins.txt /data/wearn/NT2_dripc/Peaks/NT2_DRIPc_merged_rep12_intersect_peaks.bed /data/aparna/Peak_Calling/GA_StochHMM/DRIP_DRIPc_peaks_clean/NT2_DRIP_intersect_peaks.bed DRIPc_late/1mil_3cell_late_DRIPc.txt DRIP_late/1mil_3cell_late_DRIP.txt
+			: Made pdf of intersect / merge comparison.
+			: Running above shuffle within regions for picard const int with
+			: 3cell early regions INT DRIP.
+			: Running within regions shuffle with DRIPc 3cell early x Picard 
+			; aparna@zeus:~/DATA/Replication_Origins/Simulations/within_regions$ screen -S within_regions_DRIPc shuffle_within_regions.pl /data/aparna/Replication_Origins/BrdU/origin_files/common_origins/K562_HeLa_IMR90/3cell_common_early_origins.txt /data/aparna/Replication_Origins/Picard/files/peaks/picard_intersect_I_3cell_early.bed 10000 /data/wearn/NT2_dripc/Peaks/NT2_DRIPc_merged_rep12_intersect_peaks.bed picard_int_early_3cell_DRIPc_int_10k_shuffle_within.txt
+		2014-09-26
+			: Finished 3 cell late DRIP DRIPc
+			: Finished within regions shuffle DRIPc 3cell early x Picard
+			: Within regions DRIPc
+			; aparna@zeus:/data/aparna/Replication_Origins/Simulations/within_regions/picard_early_3cell$ bedtools intersect -a /data/wearn/NT2_dripc/Peaks/NT2_DRIPc_merged_rep12_intersect_peaks.bed -b /data/aparna/Replication_Origins/Picard/files/peaks/picard_intersect_I_3cell_early.bed | awk '{print $3 - $2}' | awk '{sum+=$1} END {print sum}'
+			; 2265147
+			: Simulation:
+			;    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+			;    918200 1050000 1080000 1081000 1113000 1251000 
+			: DRIPc within regions is significant to 1E-4
+			: Within regions DRIP
+			; aparna@zeus:/data/aparna/Replication_Origins/Simulations/within_regions/picard_early_3cell$ bedtools intersect -a /data/aparna/Peak_Calling/GA_StochHMM/DRIP_DRIPc_peaks_clean/NT2_DRIP_intersect_peaks.bed -b /data/aparna/Replication_Origins/Picard/files/peaks/picard_intersect_I_3cell_early.bed | awk '{print $3 - $2}' | awk '{sum+=$1} END {print sum}'
+			; 7488495
+			: Simulation:
+			;    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+			;    2711000 2968000 3025000 3026000 3082000 3337000 
+			: DRIP within regions is significant to 1E-4
+			: DRIP(c) intersect 3cell regions:
+			: DRIPc x 3cell early:
+			; aparna@zeus:/data/aparna/Replication_Origins/Simulations/1mil/BrdU_origins/3cells$ bedtools intersect -a /data/wearn/NT2_dripc/Peaks/NT2_DRIPc_merged_rep12_intersect_peaks.bed -b /data/aparna/Replication_Origins/BrdU/origin_files/common_origins/K562_HeLa_IMR90/3cell_common_early_origins.txt | awk '{print $3 - $2}' | awk '{sum+=$1} END {print sum}' 
+			; 13845874
+			: Simulation:
+			;     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
+			;     7122000  8502000  8779000  8783000  9060000 10760000
+			: DRIPc overlap 3cell early is significant to 1E-6
+			: DRIPc x 3cell late:
+			; aparna@zeus:/data/aparna/Replication_Origins/Simulations/1mil/BrdU_origins/3cells$ bedtools intersect -a /data/wearn/NT2_dripc/Peaks/NT2_DRIPc_merged_rep12_intersect_peaks.bed -b /data/aparna/Replication_Origins/BrdU/origin_files/common_origins/K562_HeLa_IMR90/3cell_common_late_origins.txt | awk '{print $3 - $2}' | awk '{sum+=$1} END {print sum}' 
+			; 540374
+			: Simulation
+			;    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+			;    2550000 3757000 3953000 3958000 4154000 5480000
+			: DRIPc overlap 3cell late is significant to 1E-6
+			: DRIP x 3cell early:
+			; aparna@zeus:/data/aparna/Replication_Origins/Simulations/1mil/BrdU_origins/3cells$ bedtools intersect -a /data/aparna/Peak_Calling/GA_StochHMM/DRIP_DRIPc_peaks_clean/NT2_DRIP_intersect_peaks.bed -b /data/aparna/Replication_Origins/BrdU/origin_files/common_origins/K562_HeLa_IMR90/3cell_common_early_origins.txt | awk '{print $3 - $2}' | awk '{sum+=$1} END {print sum}' 
+			; 31199967
+			: Simulation:
+			;     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
+			;     9896000 13180000 13830000 13850000 14490000 18320000 
+			: DRIP overlap 3cell early is signficiant to 1E-6
+			: DRIP x 3cell late
+			; aparna@zeus:/data/aparna/Replication_Origins/Simulations/1mil/BrdU_origins/3cells$ bedtools intersect -a /data/aparna/Peak_Calling/GA_StochHMM/DRIP_DRIPc_peaks_clean/NT2_DRIP_intersect_peaks.bed -b /data/aparna/Replication_Origins/BrdU/origin_files/common_origins/K562_HeLa_IMR90/3cell_common_late_origins.txt | awk '{print $3 - $2}' | awk '{sum+=$1} END {print sum}' 
+			; 95312
+			: Simulation:
+			;    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+			;    2383000 4037000 4410000 4437000 4807000 7427000
+			: DRIP overlap 3cell late is significant to 1E-6
+			: Starting Picard x 3cell early INT DRIP/DRIPc genome simulation:
+			; aparna@zeus:/data/aparna/Replication_Origins/Simulations/1mil/BrdU_origins/3cells/Picard_intersect$ shuffle_genome.pl /data/aparna/Data/gaps_hg19.bed /data/aparna/Data/hg19.genome . 1000000 /data/aparna/Replication_Origins/Picard/files/peaks/picard_intersect_I_3cell_early.bed /data/wearn/NT2_dripc/Peaks/NT2_DRIPc_merged_rep12_intersect_peaks.bed /data/aparna/Peak_Calling/GA_StochHMM/DRIP_DRIPc_peaks_clean/NT2_DRIP_intersect_peaks.bed 3cell_picard_const_intersect_dripc_1mil.txt 3cell_picard_const_intersect_drip_1mil.txt
+			: Making -v -u (NOT -wa -- that makes duplicates!) files for mapping:
+			; aparna@zeus:/data/aparna/Replication_Origins/Picard/mapping$ bedtools intersect -a /data/aparna/Replication_Origins/BrdU/origin_files/common_origins/K562_HeLa_IMR90/3cell_common_early_origins.txt -b /data/wearn/NT2_dripc/Peaks/NT2_DRIPc_merged_rep12_intersect_peaks.bed | bedtools intersect -v -a stdin -b /data/aparna/Replication_Origins/Picard/files/peaks/picard_intersect_I_3cell_early.bed > dripc_-v_picard_3cell_early.bed
+			; aparna@zeus:/data/aparna/Replication_Origins/Picard/mapping$ bedtools intersect -a /data/aparna/Replication_Origins/BrdU/origin_files/common_origins/K562_HeLa_IMR90/3cell_common_early_origins.txt -b /data/wearn/NT2_dripc/Peaks/NT2_DRIPc_merged_rep12_intersect_peaks.bed | bedtools intersect -u -a stdin -b /data/aparna/Replication_Origins/Picard/files/peaks/picard_intersect_I_3cell_early.bed > dripc_-u_picard_3cell_early.bed
+			
+			; aparna@zeus:/data/aparna/Replication_Origins/Picard/mapping$ bedtools intersect -a /data/aparna/Replication_Origins/BrdU/origin_files/common_origins/K562_HeLa_IMR90/3cell_common_early_origins.txt -b /data/wearn/NT2_dripc/Peaks/NT2_DRIPc_merged_rep12_intersect_peaks.bed | bedtools intersect -v -b stdin -a /data/aparna/Replication_Origins/Picard/files/peaks/picard_intersect_I_3cell_early.bed > picard_-v_dripc_3cell_early.bed
+			; aparna@zeus:/data/aparna/Replication_Origins/Picard/mapping$ bedtools intersect -a /data/aparna/Replication_Origins/BrdU/origin_files/common_origins/K562_HeLa_IMR90/3cell_common_early_origins.txt -b /data/wearn/NT2_dripc/Peaks/NT2_DRIPc_merged_rep12_intersect_peaks.bed | bedtools intersect -u -b stdin -a /data/aparna/Replication_Origins/Picard/files/peaks/picard_intersect_I_3cell_early.bed > picard_-u_dripc_3cell_early.bed
+			; aparna@zeus:/data/aparna/Replication_Origins/Picard/mapping/peaks$ bedtools intersect -a /data/aparna/Replication_Origins/BrdU/origin_files/common_origins/K562_HeLa_IMR90/3cell_common_early_origins.txt -b /data/aparna/Peak_Calling/GA_StochHMM/DRIP_DRIPc_peaks_clean/NT2_DRIP_intersect_peaks.bed | bedtools intersect -u -b stdin -a /data/aparna/Replication_Origins/Picard/files/peaks/picard_intersect_I_3cell_early.bed > picard_-u_drip_3cell_early.bed
+			; aparna@zeus:/data/aparna/Replication_Origins/Picard/mapping/peaks$ bedtools intersect -a /data/aparna/Replication_Origins/BrdU/origin_files/common_origins/K562_HeLa_IMR90/3cell_common_early_origins.txt -b /data/aparna/Peak_Calling/GA_StochHMM/DRIP_DRIPc_peaks_clean/NT2_DRIP_intersect_peaks.bed | bedtools intersect -v -b stdin -a /data/aparna/Replication_Origins/Picard/files/peaks/picard_intersect_I_3cell_early.bed > picard_-v_drip_3cell_early.bed
+			; aparna@zeus:/data/aparna/Replication_Origins/Picard/mapping/peaks$ bedtools intersect -a /data/aparna/Replication_Origins/BrdU/origin_files/common_origins/K562_HeLa_IMR90/3cell_common_early_origins.txt -b /data/aparna/Peak_Calling/GA_StochHMM/DRIP_DRIPc_peaks_clean/NT2_DRIP_intersect_peaks.bed | bedtools intersect -v -a stdin -b /data/aparna/Replication_Origins/Picard/files/peaks/picard_intersect_I_3cell_early.bed > drip_-v_picard_3cell_early.bed
+			; aparna@zeus:/data/aparna/Replication_Origins/Picard/mapping/peaks$ bedtools intersect -a /data/aparna/Replication_Origins/BrdU/origin_files/common_origins/K562_HeLa_IMR90/3cell_common_early_origins.txt -b /data/aparna/Peak_Calling/GA_StochHMM/DRIP_DRIPc_peaks_clean/NT2_DRIP_intersect_peaks.bed | bedtools intersect -u -a stdin -b /data/aparna/Replication_Origins/Picard/files/peaks/picard_intersect_I_3cell_early.bed > drip_-u_picard_3cell_early.bed
+
+			: Starting mapping ORC1:
+			; aparna@zeus:/data/aparna/Replication_Origins/Picard/mapping/orc1$ perl -I /usr/local/bin/Perl/ /usr/local/bin/Perl/map_wig_to_bed.pl -m -w /data/aparna/Replication_Origins/BrdU/correlations/orc1/datasets/GSM922790_ChIPseq_Orc1_GradientHela.bedGraph.wig -v -r /data/aparna/cache/ ../peaks/dripc_-v_picard_3cell_early.bed 
+			
+			; aparna@zeus:/data/aparna/Replication_Origins/Picard/mapping/orc1$ perl -I /usr/local/bin/Perl/ /usr/local/bin/Perl/map_wig_to_bed.pl -m -w /data/aparna/Replication_Origins/BrdU/correlations/orc1/datasets/GSM922790_ChIPseq_Orc1_GradientHela.bedGraph.wig -v -r /data/aparna/cache/ ../peaks/dripc_-u_picard_3cell_early.bed 
+
+			; aparna@zeus:/data/aparna/Replication_Origins/Picard/mapping/orc1$ perl -I /usr/local/bin/Perl/ /usr/local/bin/Perl/map_wig_to_bed.pl -m -w /data/aparna/Replication_Origins/BrdU/correlations/orc1/datasets/GSM922790_ChIPseq_Orc1_GradientHela.bedGraph.wig -v -r /data/aparna/cache/ ../peaks/drip_-v_picard_3cell_early.bed 
+	
+			; aparna@zeus:/data/aparna/Replication_Origins/Picard/mapping/orc1$ perl -I /usr/local/bin/Perl/ /usr/local/bin/Perl/map_wig_to_bed.pl -m -w /data/aparna/Replication_Origins/BrdU/correlations/orc1/datasets/GSM922790_ChIPseq_Orc1_GradientHela.bedGraph.wig -v -r /data/aparna/cache/ ../peaks/drip_-u_picard_3cell_early.bed 
+
+			; aparna@zeus:/data/aparna/Replication_Origins/Picard/mapping/orc1$ perl -I /usr/local/bin/Perl/ /usr/local/bin/Perl/map_wig_to_bed.pl -m -w /data/aparna/Replication_Origins/BrdU/correlations/orc1/datasets/GSM922790_ChIPseq_Orc1_GradientHela.bedGraph.wig -v -r /data/aparna/cache/ ../peaks/picard_-u_drip_3cell_early.bed 
+
+			; aparna@zeus:/data/aparna/Replication_Origins/Picard/mapping/orc1$ perl -I /usr/local/bin/Perl/ /usr/local/bin/Perl/map_wig_to_bed.pl -m -w /data/aparna/Replication_Origins/BrdU/correlations/orc1/datasets/GSM922790_ChIPseq_Orc1_GradientHela.bedGraph.wig -v -r /data/aparna/cache/ ../peaks/picard_-v_drip_3cell_early.bed 
+
+			; aparna@zeus:/data/aparna/Replication_Origins/Picard/mapping/orc1$ perl -I /usr/local/bin/Perl/ /usr/local/bin/Perl/map_wig_to_bed.pl -m -w /data/aparna/Replication_Origins/BrdU/correlations/orc1/datasets/GSM922790_ChIPseq_Orc1_GradientHela.bedGraph.wig -v -r /data/aparna/cache/ ../peaks/picard_-u_dripc_3cell_early.bed 
+
+			; aparna@zeus:/data/aparna/Replication_Origins/Picard/mapping/orc1$ perl -I /usr/local/bin/Perl/ /usr/local/bin/Perl/map_wig_to_bed.pl -m -w /data/aparna/Replication_Origins/BrdU/correlations/orc1/datasets/GSM922790_ChIPseq_Orc1_GradientHela.bedGraph.wig -v -r /data/aparna/cache/ ../peaks/picard_-v_dripc_3cell_early.bed 
+
+			: H4K20Me1
+			:
+			; aparna@zeus:/data/aparna/Replication_Origins/Picard/mapping/h4k20me1$ perl -I /usr/local/bin/Perl/ /usr/local/bin/Perl/map_wig_to_bed.pl -m -w /data/aparna/Replication_Origins/BrdU/correlations/h4K20me1/dataset/H4K20me1.wig -v -r /data/aparna/cache/ ../peaks/picard_-v_dripc_3cell_early.bed 
+			
+			; aparna@zeus:/data/aparna/Replication_Origins/Picard/mapping/h4k20me1$ perl -I /usr/local/bin/Perl/ /usr/local/bin/Perl/map_wig_to_bed.pl -m -w /data/aparna/Replication_Origins/BrdU/correlations/h4K20me1/dataset/H4K20me1.wig -v -r /data/aparna/cache/ ../peaks/picard_-u_dripc_3cell_early.bed 
+
+			; aparna@zeus:/data/aparna/Replication_Origins/Picard/mapping/h4k20me1$ perl -I /usr/local/bin/Perl/ /usr/local/bin/Perl/map_wig_to_bed.pl -m -w /data/aparna/Replication_Origins/BrdU/correlations/h4K20me1/dataset/H4K20me1.wig -v -r /data/aparna/cache/ ../peaks/drip_-v_picard_3cell_early.bed 
+
+			; aparna@zeus:/data/aparna/Replication_Origins/Picard/mapping/h4k20me1$ perl -I /usr/local/bin/Perl/ /usr/local/bin/Perl/map_wig_to_bed.pl -m -w /data/aparna/Replication_Origins/BrdU/correlations/h4K20me1/dataset/H4K20me1.wig -v -r /data/aparna/cache/ ../peaks/drip_-u_picard_3cell_early.bed 
+		
+			; aparna@zeus:/data/aparna/Replication_Origins/Picard/mapping/h4k20me1$ perl -I /usr/local/bin/Perl/ /usr/local/bin/Perl/map_wig_to_bed.pl -m -w /data/aparna/Replication_Origins/BrdU/correlations/h4K20me1/dataset/H4K20me1.wig -v -r /data/aparna/cache/ ../peaks/dripc_-u_picard_3cell_early.bed 
+
+			; aparna@zeus:/data/aparna/Replication_Origins/Picard/mapping/h4k20me1$ perl -I /usr/local/bin/Perl/ /usr/local/bin/Perl/map_wig_to_bed.pl -m -w /data/aparna/Replication_Origins/BrdU/correlations/h4K20me1/dataset/H4K20me1.wig -v -r /data/aparna/cache/ ../peaks/dripc_-v_picard_3cell_early.bed 
+
+			; aparna@zeus:/data/aparna/Replication_Origins/Picard/mapping/h4k20me1$ perl -I /usr/local/bin/Perl/ /usr/local/bin/Perl/map_wig_to_bed.pl -m -w /data/aparna/Replication_Origins/BrdU/correlations/h4K20me1/dataset/H4K20me1.wig -v -r /data/aparna/cache/ ../peaks/picard_-u_drip_3cell_early.bed 
+		
+			; aparna@zeus:/data/aparna/Replication_Origins/Picard/mapping/h4k20me1$ perl -I /usr/local/bin/Perl/ /usr/local/bin/Perl/map_wig_to_bed.pl -m -w /data/aparna/Replication_Origins/BrdU/correlations/h4K20me1/dataset/H4K20me1.wig -v -r /data/aparna/cache/ ../peaks/picard_-v_drip_3cell_early.bed 
+
+			: Mapping DRIPc wig:
+			:
+			; aparna@zeus:/data/aparna/Replication_Origins/Picard/mapping/dripcwig$ perl -I /usr/local/bin/Perl/ /usr/local/bin/Perl/map_wig_to_bed.pl -m -w /data/wearn/NT2_dripc/Combined_reps/NT2_dripc_MACS_wiggle/treat/NT2_dripc_treat_afterfiting_all.wig -v -r /data/aparna/cache/ ../peaks/dripc_-u_picard_3cell_early.bed 
+
+			; aparna@zeus:/data/aparna/Replication_Origins/Picard/mapping/dripcwig$ perl -I /usr/local/bin/Perl/ /usr/local/bin/Perl/map_wig_to_bed.pl -m -w /data/wearn/NT2_dripc/Combined_reps/NT2_dripc_MACS_wiggle/treat/NT2_dripc_treat_afterfiting_all.wig -v -r /data/aparna/cache/ ../peaks/dripc_-v_picard_3cell_early.bed 
+			: Mapping DRIP wig
+			; aparna@zeus:/data/aparna/Replication_Origins/Picard/mapping/dripwig$ screen -S drip_map perl -I /usr/local/bin/Perl/ /usr/local/bin/Perl/map_wig_to_bed.pl -m -w /data/aparna/Data/NT2_drip_both_treat_afterfiting_all.wig -v -r /data/aparna/cache/ ../peaks/drip_-v_picard_3cell_early.bed 
+
+			: Made CPG promoter intersect file:
+			; aparna@zeus:/data/aparna/Data$ bedtools intersect -u -a cpg_clean.bed -b hg19_gencode_promoter.bed > cpg_promoter/cpg_-u_promoter.bed
+

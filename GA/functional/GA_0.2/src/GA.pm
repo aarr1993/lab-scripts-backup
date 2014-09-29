@@ -59,28 +59,67 @@ sub customfa {
     return;
   } 
 
-  print "Enter chromosome used for this processs (ex. chr8): ";
-  my $in_chr = <>;
-  chomp $in_chr;
-  $chromosome = $in_chr;
+  print "Initialize regions from file? (y/n): ";
+  $in = <>;
+  chomp $in;
 
-  print "Enter coordinates for the model region, space seperated, no commas: ";
-  my $input = <>;
-  chomp $input;
-  my @model = split(/\s/, $input);
-  $regions{model_region} = \@model; # FIXME correct syntax???
+  if ($in =~ /y/i) {
+    print "File should be in format:
+chr8
+MODEL 3000000 14000000
+TEST 15000000 42000000
+RUN 15000000 120000000
 
-  print "Enter coordinates for test region: ";
-  $input = <>;
-  chomp $input;
-  my @test = split(/\s/, $input);
-  $regions{test_region} = \@test;
+Enter filename: ";
+    my $file = <>;
+    chomp $file;
+    open (IN, "<", $file) or die "Could not open file\n";
+    while(<IN>) {
+      my $line = $_;
+      chomp $line;
+      if ($line =~ /^chr/) {
+        $chromosome = $line =~ /^(.+)$/; 
+      }
+      elsif ($line =~ /^MODEL/) {
+        my @tmp = $line =~ /^MODEL\s+(\d+)\s+(\d+)/;
+        $regions{model_region} = \@tmp;
+      }
+      elsif ($line =~ /TEST/) {
+        my @tmp = $line =~ /^TEST\s+(\d+)\s+(\d+)/;
+        $regions{test_region} = \@tmp;
+      }
+      elsif ($line =~ /RUN/) {
+        my @tmp = $line =~ /^RUN\s+(\d+)\s+(\d+)/;
+        $regions{run_region} = \@tmp;
+      }
+    }
+    close IN;
+    print "Regions read from file $file\n";
+  }  
+  else {
+    print "Enter chromosome used for this processs (ex. chr8): ";
+    my $in_chr = <>;
+    chomp $in_chr;
+    $chromosome = $in_chr;
 
-  print "Enter coordinates for run region: ";
-  $input = <>;
-  chomp $input;
-  my @run = split(/\s/, $input);
-  $regions{run_region} = \@run;
+    print "Enter coordinates for the model region, space seperated, no commas: ";
+    my $input = <>;
+    chomp $input;
+    my @model = split(/\s/, $input);
+    $regions{model_region} = \@model; # FIXME correct syntax???
+
+    print "Enter coordinates for test region: ";
+    $input = <>;
+    chomp $input;
+    my @test = split(/\s/, $input);
+    $regions{test_region} = \@test;
+
+    print "Enter coordinates for run region: ";
+    $input = <>;
+    chomp $input;
+    my @run = split(/\s/, $input);
+    $regions{run_region} = \@run;
+  }
 
   ## User input done ##
   
@@ -227,4 +266,80 @@ sub params {
   if ($option =~ /y/i) {
     `$cmd`;
   }
+}
+
+### User validation functions ###
+
+# validate_file_type($filename, ".extension");
+sub validate_file_type {
+  my $filename = $_[0];
+  my $ext = $_[1];
+  
+  if (! -f $filename) {
+    die "File does not exist at $filename!\n";
+  }
+
+  if ($filename !~ /$ext$/) {
+    die "Incorrect file type! Was expecting $ext, got $filename\n";
+  } 
+}
+
+# validate_wig($filename);
+sub validate_wig {
+  my $filename = $_[0];
+
+  validate_file_type($filename, ".wig");
+  open (IN, "<", $filename) or die "Could not open file $filename\n"; # also checks that it exists
+
+  my $prev_span = -1;
+  my $change = -1;
+
+  while(<IN>) {
+    my $line = $_;
+    chomp $line;
+    
+    if ($line =~ /Step/) {
+      my ($span) = $line =~ /Step chrom=.+ span=(\d+)/;
+      if ($span != $prev_span) {
+        $change++;
+      }  
+    }     
+  }
+  close IN;
+
+  if ($change) {
+    die "span in $filename changed $change times! Span MUST be constant in wig file!\n";
+  }
+}
+
+# validate_regions();
+sub validate_regions {
+  foreach my $field (keys %regions) {
+    if ($region{$field}[0] == 0 && $region{$field}[1] == 0) {
+      die "region $field coordinates are not set!\n";
+    }
+    elsif ($region{$field}[0] == $region{$field}[1]) {
+      die "region $field start and end are the same!\n";
+    }
+    elsif ($region{$field}[1] < $region{$field}[0]) {
+      die "region $field end < start!";
+    }
+  }
+  if ($region{model_region}[1] > $region{run_region}[0] && $region{model_region}[0] < $region{run_region}[1]) {
+    die "Model region is within run region!\n";
+  }
+  if (!($region{test_region}[1] >= $region{run_region}[0] && $region{test_region}[0] <= $region{run_region}[1])) {
+    die "Test region must be within run region!\n";
+}
+
+# validate_fasta($filename);
+sub validate_fasta {
+  my $filename = $_[0];
+
+}
+
+# validate_template_hmm($filename);
+sub validate_template_hmm {
+  my $filename = $_[0];
+
 }

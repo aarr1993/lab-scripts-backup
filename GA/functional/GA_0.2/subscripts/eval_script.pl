@@ -3,8 +3,8 @@ use warnings ;
 use strict ;
 use Cache::FileCache;
 
+# Wig file MUST have constant span, or else everything breaks silently! If even ONE span is wrong, possibility of error is high! Doesn't matter what the span is, as long as it is the same.
 # expects a stochhmm gff file
-# wig file should be span=10
 # expects everything to be sorted
 # expects wig file has all chrs in bed/fasta files given to stochhmm.
 
@@ -13,7 +13,7 @@ die "usage: $0 <stochhmm gff file>\n" unless @ARGV == 2;
 
 open(CONFIG, "<", "../tmp/sig_unsig_blocks.txt") or die "Could not open evalscript config file!\n";
 
-my $SCORE_THRESH = 10; # Set to min score/height for a peak
+my $SCORE_THRESH = 10; # Set to min score/height for a peak. Should be the same value set in make_cache.pl as $THRESHOLD
 my ($WIGFILE, $CACHE_ROOT, $SIG_BLOCKS, $UNSIG_BLOCKS);
 
 while (<CONFIG>) {
@@ -59,6 +59,7 @@ foreach my $chrom (keys %called) {
   my $wig_chr_ref = $cache -> get("$WIGFILE\.$chrom.cache");
   my @wig_chr = @{$wig_chr_ref}; # should be sorted
   my $index = 0;
+
   for(my $i = 0; $i < @{$called{$chrom}}; $i++) {
     my $end = $called{$chrom}[$i]{end} ;
     my $start = $called{$chrom}[$i]{start} ;
@@ -76,15 +77,17 @@ foreach my $chrom (keys %called) {
 
     $index = binary_search($start, \@wig_chr, $index);
     
-    while (exists($wig_chr[$index]{start}) && $wig_chr[$index]{start} + 9 <= $end) {
+    while (exists($wig_chr[$index]{start}) && $wig_chr[$index]{start} + ($len - 1) <= $end) {
       if ($wig_chr[$index]{value} > 2*$SCORE_THRESH) {
         $used_sig_blocks++ ;
       }
-      $avg+=$wig_chr[$index]{value} * 10;
+      $avg+=$wig_chr[$index]{value} * $len;
       $index++;
       $siglen++;
     }
+
     $avg /= $len;
+
     if (!$siglen) {
       $fp += $len ;       
     }
@@ -97,8 +100,8 @@ foreach my $chrom (keys %called) {
   }   
 }
 
-$fn += $SIG_BLOCKS * 10 - $used_sig_blocks * 10;
-$tn = $UNSIG_BLOCKS * 10 - $fp;
+$fn += $SIG_BLOCKS * $len - $used_sig_blocks * $len;
+$tn = $UNSIG_BLOCKS * $len - $fp;
 
 print "$name,$tp,$tn,$fp,$fn";
 

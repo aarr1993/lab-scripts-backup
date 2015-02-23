@@ -1,0 +1,18 @@
+==================
+| REGIONS        |
+|================|
+| chr   | [INIT] |
+|-------|--------|        
+| run   | [0:0]  |
+| test  | [0:0]  |
+| model | [0:0]  |
+==================
+
+Path to beds   : /home/INIT
+Path to wigs   : /home/INIT
+Path to models : /home/INIT
+
+CHECKS
+[ ] Wig normalized?
+[ ] Template HMM created?
+[ ] 

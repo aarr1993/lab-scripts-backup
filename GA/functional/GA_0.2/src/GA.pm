@@ -315,21 +315,22 @@ sub validate_wig {
 # validate_regions();
 sub validate_regions {
   foreach my $field (keys %regions) {
-    if ($region{$field}[0] == 0 && $region{$field}[1] == 0) {
+    if ($regions{$field}[0] == 0 && $regions{$field}[1] == 0) {
       die "region $field coordinates are not set!\n";
     }
-    elsif ($region{$field}[0] == $region{$field}[1]) {
+    elsif ($regions{$field}[0] == $regions{$field}[1]) {
       die "region $field start and end are the same!\n";
     }
-    elsif ($region{$field}[1] < $region{$field}[0]) {
+    elsif ($regions{$field}[1] < $regions{$field}[0]) {
       die "region $field end < start!";
     }
   }
-  if ($region{model_region}[1] > $region{run_region}[0] && $region{model_region}[0] < $region{run_region}[1]) {
+  if ($regions{model_region}[1] > $regions{run_region}[0] && $regions{model_region}[0] < $regions{run_region}[1]) {
     die "Model region is within run region!\n";
   }
-  if (!($region{test_region}[1] >= $region{run_region}[0] && $region{test_region}[0] <= $region{run_region}[1])) {
+  if (!($regions{test_region}[1] >= $regions{run_region}[0] && $regions{test_region}[0] <= $regions{run_region}[1])) {
     die "Test region must be within run region!\n";
+  }
 }
 
 # validate_fasta($filename);
